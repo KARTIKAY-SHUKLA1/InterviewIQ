@@ -16,44 +16,45 @@ const generateAnalysis = async (resumeText, jdText, transcriptText) => {
   try {
     const client = getClient();
 
-    const prompt = `You are an expert interview coach. Analyze this interview data and respond with JSON only.
+    const prompt = `You are an expert interview coach. Analyze this real interview data carefully.
 
 RESUME: ${resumeText.slice(0, 500)}
 
 JOB DESCRIPTION: ${jdText.slice(0, 500)}
 
-TRANSCRIPT: ${transcriptText.slice(0, 500)}
+INTERVIEW TRANSCRIPT: ${transcriptText.slice(0, 500)}
 
-Respond with ONLY this JSON, no other text:
+Based on the above real data, respond with ONLY a JSON object. Use actual skill names, actual questions, actual topics from the data above. No placeholders like q1, s1, task1.
+
 {
   "summary": {
-    "questionsAsked": ["q1", "q2"],
-    "topicsCovered": ["t1", "t2"],
-    "overallSummary": "2 sentence summary"
+    "questionsAsked": ["actual question from transcript"],
+    "topicsCovered": ["actual topic discussed"],
+    "overallSummary": "actual 2 sentence summary based on the data"
   },
   "skillGap": {
-    "requiredSkills": ["s1", "s2"],
-    "candidateSkills": ["s1", "s2"],
-    "missingSkills": ["s1"],
+    "requiredSkills": ["actual skills from JD"],
+    "candidateSkills": ["actual skills from resume"],
+    "missingSkills": ["skills in JD but not in resume"],
     "matchScore": 70
   },
   "performance": {
-    "strongAnswers": [{"question": "q1", "why": "reason"}],
-    "weakAnswers": [{"question": "q1", "why": "reason", "improvement": "tip"}],
+    "strongAnswers": [{"question": "actual question", "why": "actual reason"}],
+    "weakAnswers": [{"question": "actual question", "why": "actual reason", "improvement": "actual tip"}],
     "overallScore": 65
   },
   "roadmap": {
-    "threeDays": ["task1"],
-    "sevenDays": ["task1"],
-    "fourteenDays": ["task1"]
+    "threeDays": ["specific actionable task"],
+    "sevenDays": ["specific actionable task"],
+    "fourteenDays": ["specific actionable task"]
   }
 }`;
 
     const response = await client.chat.completions.create({
-      model: process.env.QWEN_MODEL || "Qwen/Qwen3-8B",
+      model: process.env.QWEN_MODEL || "Qwen/Qwen3-1.7B",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.3,
-      max_tokens: 500,
+      max_tokens: 800,
     });
 
     const raw = response.choices[0].message.content;
@@ -83,7 +84,7 @@ const chatWithContext = async (question, retrievedChunks, conversationHistory = 
       .map((c, i) => `[${i + 1}] (Source: ${c.source})\n${c.text.slice(0, 200)}`)
       .join("\n\n");
 
-    const systemPrompt = `You are InterviewIQ, an AI interview coach. Answer questions using ONLY the provided context. Always cite which source (resume/jobDescription/transcript) your answer comes from. Be concise.`;
+    const systemPrompt = `You are InterviewIQ, an AI interview coach. Answer questions using ONLY the provided context. Always cite which source (resume/jobDescription/transcript) your answer comes from. Be specific and concise.`;
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -95,7 +96,7 @@ const chatWithContext = async (question, retrievedChunks, conversationHistory = 
     ];
 
     const response = await client.chat.completions.create({
-      model: process.env.QWEN_MODEL || "Qwen/Qwen3-8B",
+      model: process.env.QWEN_MODEL || "Qwen/Qwen3-1.7B",
       messages,
       temperature: 0.4,
       max_tokens: 300,
