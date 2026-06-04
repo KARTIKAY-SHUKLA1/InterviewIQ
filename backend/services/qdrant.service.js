@@ -1,7 +1,7 @@
 const { QdrantClient } = require("@qdrant/js-client-rest");
 
 const COLLECTION_NAME = "interviewiq";
-const VECTOR_SIZE = 768;
+const VECTOR_SIZE = 1024;
 
 const getClient = () => {
   return new QdrantClient({
