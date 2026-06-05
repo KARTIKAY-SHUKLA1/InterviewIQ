@@ -1,32 +1,18 @@
+import { useState } from "react";
+import UploadPage from "./pages/UploadPage";
+import ResultsPage from "./pages/ResultsPage";
+import "./App.css";
+
 function App() {
+  const [analysisData, setAnalysisData] = useState(null);
+
   return (
-    <div style={{ padding: "40px" }}>
-      <h1>InterviewIQ</h1>
-
-      <br />
-
-      <div>
-        <h3>Upload Resume</h3>
-        <input type="file" />
-      </div>
-
-      <br />
-
-      <div>
-        <h3>Upload Job Description</h3>
-        <input type="file" />
-      </div>
-
-      <br />
-
-      <div>
-        <h3>Upload Interview Recording</h3>
-        <input type="file" />
-      </div>
-
-      <br />
-
-      <button>Analyze Interview</button>
+    <div className="app">
+      {!analysisData ? (
+        <UploadPage onAnalysisComplete={setAnalysisData} />
+      ) : (
+        <ResultsPage data={analysisData} />
+      )}
     </div>
   );
 }
