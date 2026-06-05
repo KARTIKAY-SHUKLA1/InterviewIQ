@@ -1,17 +1,16 @@
 import { useState } from "react";
 import UploadPage from "./pages/UploadPage";
 import ResultsPage from "./pages/ResultsPage";
-import "./App.css";
 
 function App() {
   const [analysisData, setAnalysisData] = useState(null);
 
   return (
-    <div className="app">
+    <div className="min-h-screen bg-[#080810] text-white">
       {!analysisData ? (
         <UploadPage onAnalysisComplete={setAnalysisData} />
       ) : (
-        <ResultsPage data={analysisData} />
+        <ResultsPage data={analysisData} onBack={() => setAnalysisData(null)} />
       )}
     </div>
   );
