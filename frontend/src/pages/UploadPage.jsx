@@ -35,10 +35,11 @@ const UploadPage = ({ onAnalysisComplete }) => {
 
       setStage("Analyzing with Qwen AI...");
       const analysisResult = await analyzeInterview(
-        uploadResult.files.resume.path,
-        uploadResult.files.jobDescription.path,
-        uploadResult.files.audio.path
-      );
+  uploadResult.files.resume.path,
+  uploadResult.files.jobDescription.path,
+  uploadResult.files.audio.path,
+  (stage) => setStage(stage)
+);
 
       if (!analysisResult.success) {
         throw new Error("Analysis failed");
