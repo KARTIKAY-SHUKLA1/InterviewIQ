@@ -22,7 +22,7 @@ RESUME: ${resumeText.slice(0, 500)}
 
 JOB DESCRIPTION: ${jdText.slice(0, 500)}
 
-INTERVIEW TRANSCRIPT: ${transcriptText.slice(0, 500)}
+INTERVIEW TRANSCRIPT (with timestamps): ${transcriptText.slice(0, 500)}
 
 Based on the above real data, respond with ONLY a JSON object. Use actual skill names, actual questions, actual topics from the data above. No placeholders like q1, s1, task1.
 
@@ -81,10 +81,13 @@ const chatWithContext = async (question, retrievedChunks, conversationHistory = 
     const client = getClient();
 
     const context = retrievedChunks
-      .map((c, i) => `[${i + 1}] (Source: ${c.source})\n${c.text.slice(0, 200)}`)
+      .map((c, i) => {
+        const timeRef = c.timestamp ? ` at ${c.timestamp}` : "";
+        return `[${i + 1}] (Source: ${c.source}${timeRef})\n${c.text.slice(0, 200)}`;
+      })
       .join("\n\n");
 
-    const systemPrompt = `You are InterviewIQ, an AI interview coach. Answer questions using ONLY the provided context. Always cite which source (resume/jobDescription/transcript) your answer comes from. Be specific and concise.`;
+    const systemPrompt = `You are InterviewIQ, an AI interview coach. Answer questions using ONLY the provided context. When citing transcript chunks, always mention the timestamp if available (e.g. "at 04:32 you said..."). Always cite which source (resume/jobDescription/transcript) your answer comes from. Be specific and concise.`;
 
     const messages = [
       { role: "system", content: systemPrompt },

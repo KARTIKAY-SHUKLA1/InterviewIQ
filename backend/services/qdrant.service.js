@@ -38,13 +38,14 @@ const storeChunks = async (chunks, embeddings, sessionId) => {
     id: Date.now() + idx,
     vector: embeddings[idx],
     payload: {
-      text: chunk.text,
-      source: chunk.source,
-      chunkIndex: chunk.chunkIndex,
-      sessionId,
-      startWord: chunk.startWord,
-      endWord: chunk.endWord,
-    },
+  text: chunk.text,
+  source: chunk.source,
+  chunkIndex: chunk.chunkIndex,
+  sessionId,
+  startWord: chunk.startWord,
+  endWord: chunk.endWord,
+  timestamp: chunk.timestamp || null,
+},
   }));
 
   await client.upsert(COLLECTION_NAME, { points: numericPoints });
@@ -64,11 +65,12 @@ const searchChunks = async (queryEmbedding, sessionId, limit = 5) => {
   });
 
   return results.map((r) => ({
-    text: r.payload.text,
-    source: r.payload.source,
-    score: r.score,
-    chunkIndex: r.payload.chunkIndex,
-  }));
+  text: r.payload.text,
+  source: r.payload.source,
+  score: r.score,
+  chunkIndex: r.payload.chunkIndex,
+  timestamp: r.payload.timestamp || null,
+}));
 };
 
 module.exports = { ensureCollection, storeChunks, searchChunks };

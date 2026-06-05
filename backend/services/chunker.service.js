@@ -1,10 +1,7 @@
-// Split text into overlapping chunks with metadata
-// This is critical for good RAG — naive splitting loses context at boundaries
-
 const chunkText = (text, source, options = {}) => {
   const {
-    chunkSize = 300,    // words per chunk
-    overlap = 50,       // words overlap between chunks
+    chunkSize = 300,
+    overlap = 50,
   } = options;
 
   const words = text.split(/\s+/).filter(Boolean);
@@ -16,23 +13,27 @@ const chunkText = (text, source, options = {}) => {
     const chunkWords = words.slice(i, i + chunkSize);
     const chunkText = chunkWords.join(" ");
 
+    // Extract timestamp from chunk if it exists (format [MM:SS])
+    const timestampMatch = chunkText.match(/\[(\d{2}:\d{2})\]/);
+    const timestamp = timestampMatch ? timestampMatch[1] : null;
+
     chunks.push({
       text: chunkText,
-      source,           // "resume" | "jobDescription" | "transcript"
+      source,
       chunkIndex,
       wordCount: chunkWords.length,
       startWord: i,
       endWord: i + chunkWords.length,
+      timestamp, // null for resume/JD, actual time for transcript
     });
 
     chunkIndex++;
-    i += chunkSize - overlap; // slide window with overlap
+    i += chunkSize - overlap;
   }
 
   return chunks;
 };
 
-// Chunk all three sources and tag them
 const chunkAllSources = (resumeText, jdText, transcriptText) => {
   const resumeChunks = chunkText(resumeText, "resume", { chunkSize: 200, overlap: 40 });
   const jdChunks = chunkText(jdText, "jobDescription", { chunkSize: 200, overlap: 40 });
