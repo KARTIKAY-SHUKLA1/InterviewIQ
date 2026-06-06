@@ -16,85 +16,89 @@ const generateAnalysis = async (resumeText, jdText, transcriptText) => {
   try {
     const client = getClient();
 
-    const prompt = `You are a senior technical interviewer and career coach. Analyze this specific interview and give highly personalized feedback.
+    const prompt = `You are a senior technical interviewer and career coach at a top tech company. Your job is to give the most honest, specific, and actionable interview feedback possible.
 
-CANDIDATE RESUME:
+Read the following carefully:
+
+=== CANDIDATE RESUME ===
 ${resumeText.slice(0, 1500)}
 
-JOB DESCRIPTION:
+=== JOB DESCRIPTION ===
 ${jdText.slice(0, 1500)}
 
-INTERVIEW TRANSCRIPT (with timestamps):
+=== INTERVIEW TRANSCRIPT (with timestamps) ===
 ${transcriptText.slice(0, 2000)}
 
-STRICT RULES — read every rule carefully:
+Now analyze and produce feedback following these STRICT RULES:
 
-RULE 1 — SKILL GAP:
-- candidateSkills = list ONLY skills explicitly written in the RESUME above
-- requiredSkills = list ONLY skills explicitly written in the JD above  
-- missingSkills = list ONLY skills that appear in JD but are COMPLETELY ABSENT from resume
-- missingSkills must have ZERO overlap with candidateSkills
+--- SUMMARY RULES ---
+- questionsAsked: list the EXACT questions asked in the transcript word for word
+- topicsCovered: list specific technical topics discussed (not generic like "algorithms" but specific like "binary search on peak finding arrays")
+- overallSummary: write 3 sentences — sentence 1: what role the candidate applied for and what technical area was tested, sentence 2: what the candidate did well with specific evidence from transcript, sentence 3: what the candidate struggled with and how it relates to JD requirements
 
-RULE 2 — PERFORMANCE:
-- strongAnswers and weakAnswers must be about COMPLETELY DIFFERENT questions or aspects
-- NEVER put the same question in both strongAnswers and weakAnswers
-- If only one question exists in transcript, split into different aspects e.g. "Problem comprehension" vs "Solution implementation"
-- strongAnswers.why MUST start with exact timestamp e.g. "At [00:15] candidate..."
-- weakAnswers.why MUST start with exact timestamp e.g. "At [03:28] candidate..."
-- weakAnswers.improvement must name a SPECIFIC platform, problem number, or resource URL
+--- SKILL GAP RULES ---
+- candidateSkills: extract ONLY skills explicitly mentioned in the resume text above — use exact terms from resume
+- requiredSkills: extract ONLY skills explicitly mentioned in the JD text above — use exact terms from JD
+- missingSkills: compute this as (requiredSkills minus candidateSkills) — skills that appear in JD but are completely absent from resume — ZERO overlap with candidateSkills allowed
+- matchScore: calculate as integer percentage = (number of requiredSkills found in candidateSkills / total requiredSkills) * 100
 
-RULE 3 — ROADMAP (most important):
-- Every roadmap task must be 100% personalized to THIS candidate's specific gaps
-- Look at missingSkills and weakAnswers — roadmap must directly address them
-- Every task must include a specific platform name (LeetCode, Pramp, neetcode.io, Coursera, YouTube channel name, GitHub repo name)
-- Every task must include a specific action (problem number, course name, chapter name, project idea)
-- NEVER write generic tasks like "practice algorithms" or "study AI concepts"
-- Example of BAD task: "Practice problem-solving skills"
-- Example of GOOD task: "Solve LeetCode #162 Find Peak Element and #852 Peak Index — use binary search approach, aim to solve in under 15 minutes without hints"
-- Example of BAD task: "Learn about AI strategy"  
-- Example of GOOD task: "Read Lokal's product blog and study how they use AI for local content — then read 'AI Product Manager' course on Coursera by Duke University"
+--- PERFORMANCE RULES ---
+- strongAnswers and weakAnswers MUST be about DIFFERENT aspects — never the same question in both
+- If only one question in transcript, split into different aspects: e.g. "Problem comprehension" vs "Solution completeness"
+- strongAnswers.why: MUST include exact timestamp and quote candidate's words e.g. "At [00:15] you correctly said 'the array first increases then decreases' showing strong problem analysis"
+- weakAnswers.why: MUST include exact timestamp and quote candidate's words showing the weakness
+- weakAnswers.improvement: MUST be a specific resource — include platform name AND specific problem/course/chapter name
 
-Respond with ONLY valid JSON, absolutely no other text:
+--- ROADMAP RULES ---
+- Every task must be 100% specific to THIS candidate's gaps identified above
+- Every task must name a specific platform (LeetCode, Pramp, neetcode.io, Coursera, YouTube, GitHub, docs.python.org etc)
+- Every task must include a specific action (problem number, course name, chapter, project idea)
+- FORBIDDEN generic phrases: "practice algorithms", "study concepts", "explore topics", "learn about", "attend workshops"
+- threeDays: focus on the most critical weakness from the transcript
+- sevenDays: focus on bridging the biggest skill gap between resume and JD
+- fourteenDays: focus on building something demonstrable using the missing skills
+
+Respond with ONLY valid JSON. No explanation, no markdown, no text outside the JSON:
 {
   "summary": {
     "questionsAsked": ["exact question from transcript"],
-    "topicsCovered": ["specific technical topic from transcript"],
-    "overallSummary": "2 sentences: first sentence mentions specific skills from resume and what JD requires, second sentence mentions specific moment from transcript with timestamp"
+    "topicsCovered": ["specific technical topic e.g. Binary search on peak finding arrays"],
+    "overallSummary": "3 sentences following the rules above"
   },
   "skillGap": {
-    "requiredSkills": ["skill from JD"],
-    "candidateSkills": ["skill from resume"],
-    "missingSkills": ["skill in JD not in resume"],
-    "matchScore": 60
+    "requiredSkills": ["exact skill from JD"],
+    "candidateSkills": ["exact skill from resume"],
+    "missingSkills": ["skill in JD not in resume — zero overlap"],
+    "matchScore": 65
   },
   "performance": {
     "strongAnswers": [
       {
-        "question": "specific ASPECT candidate handled well — not the full question",
-        "why": "At [00:XX] candidate [specific thing they did well with evidence from transcript]"
+        "question": "specific aspect candidate handled well e.g. Problem comprehension and edge case clarification",
+        "why": "At [00:XX] you said '[exact quote]' which shows [specific strength]"
       }
     ],
     "weakAnswers": [
       {
-        "question": "DIFFERENT specific ASPECT candidate struggled with",
-        "why": "At [0X:XX] candidate [specific thing they struggled with, exact words if possible]",
-        "improvement": "Specific action: [platform name] — [specific problem/course/resource] — [measurable goal]"
+        "question": "DIFFERENT specific aspect candidate struggled with e.g. Implementing complete binary search solution",
+        "why": "At [0X:XX] you said '[exact quote]' which shows [specific weakness]",
+        "improvement": "[Platform name] — [specific resource]: [specific action with measurable goal]"
       }
     ],
     "overallScore": 55
   },
   "roadmap": {
     "threeDays": [
-      "Directly address top weakness from transcript: [specific LeetCode problem or resource with number/link]",
-      "Bridge biggest skill gap from JD vs resume: [specific course or project with platform name]"
+      "Address transcript weakness: [specific LeetCode problem number and name] on neetcode.io — solve without hints in under [X] minutes",
+      "Quick skill bridge: [specific resource addressing top missing JD skill]"
     ],
     "sevenDays": [
-      "Deepen weak area identified in transcript: [specific resource with platform and chapter/section]",
-      "Practice interview communication: [specific mock interview platform with goal]"
+      "Deep dive on biggest JD gap: [specific course/resource with platform and chapter]",
+      "Interview practice: Complete [X] mock interviews on Pramp.com focusing on [specific skill]"
     ],
     "fourteenDays": [
-      "Build project using top missing JD skill: [specific project idea that demonstrates the missing skill]",
-      "Complete interview preparation: [specific final preparation resource]"
+      "Build project: [specific project idea using top missing JD skill] and deploy to GitHub",
+      "Final prep: [specific final resource addressing remaining gaps]"
     ]
   }
 }`;
@@ -138,21 +142,25 @@ const chatWithContext = async (question, retrievedChunks, conversationHistory = 
 
     const systemPrompt = `You are InterviewIQ, an expert interview coach with 10 years of experience helping candidates get hired at top tech companies.
 
-You have access to:
-- Candidate resume
-- Job description they applied for
-- Interview transcript with exact timestamps
+You have access to three documents:
+1. Candidate's resume
+2. Job description they applied for  
+3. Their interview transcript with exact timestamps
 
-Rules:
-- Answer ONLY from the provided context — never make things up
-- Always cite source (resume / jobDescription / transcript)
-- For transcript always include timestamp e.g. "at [03:28] you said..."
-- Be specific — name actual skills, actual companies, actual problems
-- If asked about weak answers, find exact transcript moment with timestamp
-- If asked about missing skills, compare resume vs JD precisely and name exact missing skills
-- If asked for rating, give specific number with clear reasoning broken down
-- Keep answers focused under 200 words
-- Use **bold** for key points and timestamps`;
+Your job is to give honest, specific, actionable answers.
+
+Rules you must follow every single time:
+- Answer ONLY using the provided context — never invent or assume
+- Always say which source your answer comes from: (from resume) / (from jobDescription) / (from transcript)
+- For transcript always include timestamp: "at [03:28] you said..."
+- Quote the candidate's exact words when possible
+- Be direct and specific — no filler phrases like "great question" or "it's important to"
+- If asked about weak answers → find exact moment in transcript with timestamp and quote
+- If asked about missing skills → name exact skills from JD not in resume
+- If asked for a score → give specific number with breakdown
+- If asked what to study → name specific platform and resource
+- Keep answers under 200 words
+- Use **bold** for timestamps and key skills`;
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -166,7 +174,7 @@ Rules:
     const response = await client.chat.completions.create({
       model: process.env.QWEN_MODEL || "Qwen/Qwen3-8B",
       messages,
-      temperature: 0.3,
+      temperature: 0.2,
       max_tokens: 400,
     });
 
@@ -187,48 +195,53 @@ Rules:
 const getStubAnalysis = () => ({
   summary: {
     questionsAsked: [
-      "Tell me about your React experience",
-      "How do you handle system design?",
-      "What is your experience with Docker?",
+      "Tell me about your experience with React and TypeScript",
+      "How would you approach building a document intelligence pipeline?",
+      "Where are you weak technically?",
     ],
-    topicsCovered: ["React", "Node.js", "System Design", "Docker"],
+    topicsCovered: [
+      "React and TypeScript frontend development",
+      "AI/LLM API integration",
+      "RAG pipeline architecture",
+      "Self-awareness and growth areas",
+    ],
     overallSummary:
-      "Candidate has strong React and Node.js experience from resume but the JD requires Docker and AWS which are completely absent. At [05:42] candidate gave a high-level system design answer without mentioning load balancers or caching.",
+      "Candidate applied for a Software Engineering Intern role at Livo AI requiring Python, FastAPI, AWS Bedrock and RAG pipelines. At [01:45] candidate demonstrated strong React and Node.js experience through CodeLens project and showed genuine interest in AI product work. However candidate lacks Python, FastAPI and AWS Bedrock experience which are core requirements of the role.",
   },
   skillGap: {
-    requiredSkills: ["React", "Node.js", "Docker", "AWS", "System Design"],
-    candidateSkills: ["React", "Node.js", "MongoDB", "REST APIs", "WebSockets"],
-    missingSkills: ["Docker", "AWS", "Kubernetes"],
-    matchScore: 68,
+    requiredSkills: ["Python", "FastAPI", "React", "AWS Bedrock", "Vector DB", "Neo4j", "RAG pipelines", "LLM APIs"],
+    candidateSkills: ["React", "Node.js", "Express", "MongoDB", "TypeScript", "REST APIs", "WebSockets", "JWT"],
+    missingSkills: ["Python", "FastAPI", "AWS Bedrock", "Neo4j", "RAG pipelines"],
+    matchScore: 38,
   },
   performance: {
     strongAnswers: [
       {
-        question: "Problem comprehension and clarification",
-        why: "At [00:15] candidate correctly identified the core requirement and asked smart clarifying questions about edge cases showing strong analytical thinking",
+        question: "AI/LLM API integration experience",
+        why: "At [01:45] you said 'I built CodeLens which integrates with GenAI APIs to analyze code across 12 languages' showing real hands-on AI integration experience that directly aligns with Livo's work",
       },
     ],
     weakAnswers: [
       {
-        question: "Implementing complete solution with edge cases",
-        why: "At [03:28] candidate said 'this is not my final answer' and did not complete the full implementation within the interview time",
-        improvement: "Solve LeetCode #162 Find Peak Element and #852 Peak Index on neetcode.io — practice completing full solutions in under 20 minutes without hints",
+        question: "Backend architecture and Python ecosystem",
+        why: "At [03:12] you said 'I haven't used FastAPI or Python backends' which is a significant gap since Livo's entire stack is Python + FastAPI",
+        improvement: "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — complete the full tutorial in 3 days and build a simple REST API — this is the most critical gap to close",
       },
     ],
-    overallScore: 65,
+    overallScore: 52,
   },
   roadmap: {
     threeDays: [
-      "Solve LeetCode #162 Find Peak Element and #852 Peak Index in Mountain Array on neetcode.io — use binary search, complete without hints in under 20 minutes",
-      "Complete Docker getting started tutorial at docs.docker.com/get-started and containerize your existing Node.js project",
+      "Complete FastAPI official tutorial at fastapi.tiangolo.com/tutorial — build a simple CRUD API with PostgreSQL to match Livo's stack",
+      "Read Livo's website livoassistant.com and understand their 3 main product areas — prepare specific answers for why you want to work there",
     ],
     sevenDays: [
-      "Complete 5 mock interviews on Pramp.com — practice explaining your full approach out loud before writing any code",
-      "Read System Design Primer chapter on scalability at github.com/donnemartin/system-design-primer",
+      "Build a simple RAG pipeline using Python + FAISS or Qdrant — index 10 PDFs and build a Q&A system — push to GitHub",
+      "Complete 3 mock interviews on Pramp.com focusing on system design questions about document processing pipelines",
     ],
     fourteenDays: [
-      "Deploy a Dockerized Node.js app to AWS EC2 following the official AWS tutorial — add to your GitHub and resume",
-      "Record yourself solving 3 LeetCode medium problems — review how clearly you explain your thought process",
+      "Build a document intelligence demo: upload a PDF → extract text → chunk → embed → query with LLM → deploy on Render — add to resume",
+      "Study AWS Bedrock through official workshop at workshops.aws — focus on the RAG with Bedrock module",
     ],
   },
 });

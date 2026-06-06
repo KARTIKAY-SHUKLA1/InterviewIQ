@@ -136,48 +136,60 @@ const ResultsPage = ({ data, onBack }) => {
 
         {/* Skills */}
         {activeTab === "skills" && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Skill Gap Analysis</h2>
-            <div className="mb-6">
-              <div className="flex justify-between text-sm text-slate-400 mb-2">
-                <span>Skill Match</span>
-                <span>{analysis.skillGap.matchScore}%</span>
-              </div>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all"
-                  style={{ width: `${analysis.skillGap.matchScore}%` }}
-                />
-              </div>
+  <div>
+    <h2 className="text-xl font-semibold mb-4">Skill Gap Analysis</h2>
+    <div className="mb-6">
+      <div className="flex justify-between text-sm text-slate-400 mb-2">
+        <span>Skill Match Score</span>
+        <span className="font-semibold text-white">{analysis.skillGap.matchScore}%</span>
+      </div>
+      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all"
+          style={{ width: `${analysis.skillGap.matchScore}%` }}
+        />
+      </div>
+      <p className="text-xs text-slate-500 mt-2">
+        Calculated as: skills you have ÷ skills JD requires × 100
+      </p>
+    </div>
+    <div className="grid grid-cols-2 gap-6">
+      <div>
+        <h3 className="text-sm font-semibold text-green-400 mb-1">✓ Skills You Have</h3>
+        <p className="text-xs text-slate-500 mb-3">From your resume</p>
+        <div className="space-y-2">
+          {analysis.skillGap.candidateSkills.map((s, i) => (
+            <div key={i} className="text-sm bg-green-500/10 border border-green-500/20 text-green-300 px-3 py-2 rounded-lg">
+              {s}
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <h3 className="text-sm font-semibold text-green-400 mb-3">✓ Your Skills</h3>
-                <div className="space-y-2">
-                  {analysis.skillGap.candidateSkills.map((s, i) => (
-                    <div key={i} className="text-sm bg-green-500/10 border border-green-500/20 text-green-300 px-3 py-2 rounded-lg">{s}</div>
-                  ))}
-                </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h3 className="text-sm font-semibold text-red-400 mb-1">✗ Skills You Are Missing</h3>
+        <p className="text-xs text-slate-500 mb-3">In JD but not in your resume — focus here</p>
+        <div className="space-y-2">
+          {analysis.skillGap.missingSkills.length > 0 ? (
+            analysis.skillGap.missingSkills.map((s, i) => (
+              <div key={i} className="text-sm bg-red-500/10 border border-red-500/20 text-red-300 px-3 py-2 rounded-lg">
+                {s}
               </div>
-              <div>
-                <h3 className="text-sm font-semibold text-blue-400 mb-3">◎ Required</h3>
-                <div className="space-y-2">
-                  {analysis.skillGap.requiredSkills.map((s, i) => (
-                    <div key={i} className="text-sm bg-blue-500/10 border border-blue-500/20 text-blue-300 px-3 py-2 rounded-lg">{s}</div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-red-400 mb-3">✗ Missing</h3>
-                <div className="space-y-2">
-                  {analysis.skillGap.missingSkills.map((s, i) => (
-                    <div key={i} className="text-sm bg-red-500/10 border border-red-500/20 text-red-300 px-3 py-2 rounded-lg">{s}</div>
-                  ))}
-                </div>
-              </div>
+            ))
+          ) : (
+            <div className="text-sm text-green-400 bg-green-500/5 border border-green-500/20 px-3 py-2 rounded-lg">
+              No missing skills — great match!
             </div>
-          </div>
+          )}
+        </div>
+        {analysis.skillGap.missingSkills.length > 0 && (
+          <p className="text-xs text-slate-500 mt-3">
+            {analysis.skillGap.missingSkills.length} skill{analysis.skillGap.missingSkills.length > 1 ? "s" : ""} to learn before next round
+          </p>
         )}
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Performance */}
         {activeTab === "performance" && (
