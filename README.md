@@ -1,18 +1,38 @@
 # InterviewIQ — AI-Powered Interview Intelligence Copilot
 
-Live Demo : https://interview-iq-nine-zeta.vercel.app/
+**Live Demo:** https://interview-iq-nine-zeta.vercel.app/
 
-## What It Does ?
+## Screenshots
 
-InterviewIQ takes three inputs — your resume, job description, and interview recording and gives you a complete breakdown of your performance. It tells you which questions you answered well, which ones exposed gaps, what skills you're missing for the role, and gives you a personalized 3/7/14 day prep plan. You can also chat with it: ask "what was my weakest answer?" and it answers citing the exact timestamp in your recording.
+### Upload
+![Upload](screenshots/upload.png)
 
-## Why I Built This ?
+### Summary
+![Summary](screenshots/summary.png)
 
-I'm a final year ECE student at IIIT Kota, actively applying for internships. After every interview I'd walk out not knowing what actually went wrong. Memory right after a stressful interview is unreliable — I couldn't tell which questions I fumbled, which skills I failed to demonstrate, or what to study before round two. I've built full-stack products before but none of them solved this specific problem. I wanted something that could take the raw material of an interview — the audio, my resume, the JD — and turn it into something actionable. That's InterviewIQ.
+### Skill Gap
+![Skill Gap](screenshots/skillgap.png)
 
-The smallest useful version: upload three files, get back a breakdown that tells you what to do next.
+### Performance
+![Performance](screenshots/performance.png)
 
-## How To Run It ?
+### Roadmap
+![Roadmap](screenshots/roadmap.png)
+
+### Chat
+![Chat](screenshots/chat.png)
+
+## What It Does
+
+After every interview I walked out not knowing what actually went wrong. InterviewIQ fixes this - upload your resume, the job description, and your interview recording, and get back a complete breakdown in minutes. It tells you which questions you answered well, which ones showed gaps, exactly which skills the JD requires that your resume doesn't have, and a day by day prep plan for your next round. You can also chat with it after: ask "what was my weakest answer?" and it responds citing the exact timestamp in your recording so you can verify it yourself.
+
+## Why I Built This
+
+I'm a final year ECE student at IIIT Kota, actively interviewing for internships. After every interview — whether it went well or badly I'd have no structured way to understand what happened. I'd try to recall which questions I fumbled but memory right after a stressful interview is unreliable. I'd look at the JD and wonder which of those skills I'd actually demonstrated. I'd have no plan for round two.
+
+I've built full-stack products before — a pair programming platform, an AI code review tool, a job portal. None of them solved this specific problem I kept running into. I wanted something that could take the raw material of an interview and turn it into something actionable. The smallest useful version is exactly what I built: three files in, real feedback out.
+
+## How To Run It
 
 ### Prerequisites
 - Node.js 20+
@@ -39,7 +59,7 @@ QDRANT_URL=your_qdrant_cloud_url
 QDRANT_API_KEY=your_qdrant_api_key
 QWEN_API_URL=http://localhost:8002/v1
 QWEN_API_KEY=dummy
-QWEN_MODEL=Qwen/Qwen3-1.7B
+QWEN_MODEL=Qwen/Qwen3-8B
 EMBED_API_URL=http://localhost:8001
 EMBED_API_KEY=dummy
 ```
@@ -63,37 +83,40 @@ pip install fastapi uvicorn openai-whisper transformers torch sentence-transform
 conda install -c conda-forge ffmpeg -y
 ```
 
-Start AI servers:
+Copy the Python server files from the repo to `/home/user/interviewiq/` and start them:
 ```bash
 nohup uvicorn whisper_server:app --host 0.0.0.0 --port 8000 --app-dir /home/user/interviewiq &
 nohup uvicorn embed_server:app --host 0.0.0.0 --port 8001 --app-dir /home/user/interviewiq &
 nohup uvicorn qwen_server:app --host 0.0.0.0 --port 8002 --app-dir /home/user/interviewiq &
 ```
 
-### 5. Start Backend
+Wait 60 seconds for models to load, then start the backend:
 ```bash
 cd backend && node server.js
 ```
 
-### 6. Start Frontend
+### 5. Frontend
 ```bash
 cd frontend && npm run dev
 ```
 
 ### Sample Data
-The `samples/` folder has a sample resume, JD, and 10 minute mock coding interview. Use these to test without recording your own interview.
+The `samples/` folder has a sample resume, Livo AI JD, and a mock interview recording. Upload all three to test without recording your own interview. Processing takes 3-5 minutes.
 
-## Example Questions The Chat Can Answer
+### Known Limitation
+Demo environment limited to ~8MB audio due to JarvisLabs proxy. In production this would use direct S3 upload no size limit.
 
-These require combining information from multiple sources:
+## Example Chat Questions
 
-- *"What was my weakest answer?"* — uses transcript timestamps + JD requirements
-- *"Which skills from the JD am I missing?"* — compares resume against JD
-- *"What should I study before my next round?"* — pulls from all three sources to give a personalized plan
+These require combining information from all three sources simultaneously:
+
+- *"What was my weakest answer?"* — finds the exact timestamp in transcript, explains why it was weak relative to JD requirements
+- *"Which skills from the JD am I missing?"* — compares resume skills against JD requirements precisely
+- *"What should I study before my next round?"* — personalizes based on your specific gaps across all three documents
 
 ## Processing Time
 
-| Audio Length | Time |
+| Audio Length | Processing Time |
 |---|---|
 | 5 min | ~2 min |
 | 10 min | ~4 min |
@@ -101,61 +124,47 @@ These require combining information from multiple sources:
 
 ## Architecture Decisions
 
-### Why Whisper instead of cloud speech-to-text APIs ?
-Interview recordings are personal and sensitive. Cloud APIs like AssemblyAI send your audio to third-party servers and charge per minute. Whisper is open source, runs on our own GPU, and costs nothing per call. Base model on A30 GPU handles a 10-minute interview in about 3-4 minutes.
+### Why Whisper instead of cloud STT APIs ?
+Interview recordings are personal. Cloud APIs like AssemblyAI send your audio to third-party servers and charge per minute. Whisper runs on our own GPU no cost per call, no data leaving our infrastructure. Base model on A30 handles a 10-minute interview in 3-4 minutes.
 
-### Why BGE-large for embeddings instead of OpenAI ?
-BGE-large-en-v1.5 ranks at the top of the MTEB retrieval benchmark for open models. It produces 1024-dimensional vectors, runs on our GPU, and has zero cost per call. OpenAI embeddings are proprietary and add external dependency.
+### Why BGE-large instead of OpenAI embeddings ?
+BGE-large-en-v1.5 tops the MTEB retrieval benchmark for open models. It produces 1024-dimensional vectors and runs on our GPU at zero cost per call. I initially tried 768-dim embeddings and hit a Qdrant dimension mismatch error switching to 1024-dim fixed it and gave better retrieval quality.
 
 ### Why Qdrant instead of Pinecone ?
-Qdrant has a free cloud tier that works without credit card. More importantly it supports payload filtering — we use this to filter chunks by sessionId so each interview analysis is completely isolated from others. Pinecone's free tier has stricter index limits.
+Free cloud tier, no credit card required. More importantly, Qdrant supports payload filtering I use this to filter chunks by sessionId so each interview analysis is completely isolated. Every upload gets its own session and its own vector space.
 
 ### Why chunk text instead of embedding full documents ?
-A single resume vector can't answer "what projects did I mention?" — you need chunk-level retrieval. We split into 200-word pieces with 40-word overlap so context isn't lost at boundaries. This is what makes the chat actually precise rather than vague.
+If I embed an entire resume as one vector, the chat can't answer "what projects did I mention?" precisely it would retrieve the whole resume for every question. Chunking into 200-word pieces with 40-word overlap lets the RAG retrieve exactly the right section. The overlap prevents context loss at chunk boundaries.
 
-### Why async processing with polling instead of waiting for response ?
-Whisper takes 3-5 minutes on a 10-minute file. Synchronous HTTP requests timeout through Cloudflare at 120 seconds. We return a jobId immediately, process in background, frontend polls every 5 seconds. Standard pattern for long-running AI tasks.
+### Why async processing with polling ?
+Whisper takes 3-5 minutes on a 10-minute audio file. Synchronous HTTP requests timeout through Cloudflare's proxy at 120 seconds. The endpoint returns a jobId immediately, processes everything in the background, and the frontend polls every 5 seconds. Standard pattern for long-running AI tasks works for any audio length.
 
 ### Why timestamp citations in chat ?
-Whisper returns word-level timestamps with every transcription. We store the start timestamp with each transcript chunk in Qdrant. When chat retrieves chunks, Qwen can say "at 03:28 you said..." so the user can verify exactly what moment in their interview is being referenced. This is what separates a useful answer from a generic one.
+Whisper returns word level timestamps with every transcription. I store the start timestamp with each transcript chunk in Qdrant as metadata. When the chat retrieves relevant chunks, Qwen sees "Source: transcript at 03:28" and cites it in the answer. The user can scrub to that exact moment and verify what the AI is referencing.
 
-### Why not use LangChain ?
-I built the RAG pipeline from scratch — custom chunker, direct Qdrant client, manual embedding calls. I wanted to understand every component and explain it clearly in an interview. LangChain would abstract it away and I'd be guessing at what's happening under the hood.
+### Why not LangChain ?
+I built the RAG pipeline from scratch custom chunker, direct Qdrant client, manual embedding calls. Two reasons: I wanted to understand every part of the pipeline so I can explain it clearly, and LangChain abstracts away the exact behavior I needed to control (chunk overlap, payload metadata, session filtering).
 
-### Why Qwen3 instead of GPT-4 ?
-This is a JarvisLabs assessment — running open models on GPU is the whole point. Qwen3-1.7B fits in A30 VRAM and responds in 30-60 seconds. For production I'd use Qwen3-8B on an A100 for sharper analysis quality.
+### Why deterministic skill extraction instead of asking Qwen ?
+Early versions asked Qwen to extract skills from the resume and JD. It hallucinated showing Node.js as "missing" when it was clearly in the resume. I replaced this with keyword matching against a list of 60+ tech skills. Qwen still generates the qualitative analysis (summary, performance, roadmap) but skill gap is computed in code — deterministic, no hallucination possible.
 
----
+### Why Qwen3-8B instead of GPT-4 ?
+This is a JarvisLabs assessment running open models on GPU is the point. Qwen3-8B fits in A30 VRAM and gives significantly better analysis than the 1.7B variant. For production, Qwen3-14B on an A100 would give sharper results.
 
 ## What I Used AI For
 
-- **AI assisted:** Express boilerplate, Tailwind classes, debugging error messages
-- **Written by hand:** Architecture decisions, chunking strategy, prompt engineering, async job pattern, RAG retrieval logic, timestamp citation implementation
-- **Where I overrode AI:** Claude suggested LangChain — I built manually. Claude suggested 768-dim embeddings — I changed to 1024-dim after hitting a Qdrant dimension mismatch error.
-
----
+- **AI assisted:** Initial Express route boilerplate, Tailwind class suggestions, debugging specific error messages
+- **Written by hand:** All architecture decisions, the chunking strategy with overlap, prompt engineering for all Qwen calls, async job processing pattern, RAG retrieval logic, timestamp citation implementation, deterministic skill extraction
+- **Where I overrode AI:** Claude suggested using LangChain for the RAG pipeline I chose to build it manually. Claude suggested 768-dim embeddings — I changed to 1024-dim after a Qdrant dimension mismatch error. Claude suggested a single Qwen call for the full roadmap — I split into 3 separate calls (one per time period) after the single call produced repetitive output across all three columns.
 
 ## What I Would Change With 4 More Weeks
 
-1. **Speaker diarization** — separate interviewer questions from candidate answers. Right now we treat the full transcript as one blob. Analyzing only the candidate's answers would make performance scoring much more accurate.
+**Speaker diarization** — right now the transcript is one blob of text. A real interview has two speakers interviewer and candidate. Separating them would let me analyze only the candidate's answers, not the questions, making performance scoring significantly more accurate.
 
-2. **Whisper Large V3 on A100** — current setup uses base model on A30 for speed. Large V3 gives near-perfect transcription especially for technical terms.
+**Whisper Large V3 on A100** — base model on A30 works but misses technical terms occasionally. Large V3 would give near perfect transcription for terms like "FastAPI", "Qdrant", "BGE" that base sometimes gets wrong.
 
-3. **Round tracking** — upload interviews from multiple rounds, track skill improvement over time. The sessionId architecture already supports this conceptually.
+**Round tracking** — upload interviews from multiple rounds for the same role and see skill improvement over time. The sessionId architecture already supports this conceptually it just needs a user account system to associate sessions.
 
-4. **Persistent storage** — analysis results live in memory and disappear on restart. MongoDB is already in the stack, just not wired up for session persistence.
+**Persistent storage** — analysis results live in memory and disappear on server restart. MongoDB is already in the stack from my other projects wiring it up for session persistence would make the product actually usable day to day.
 
-5. **Confidence scoring per answer** — instead of just "weak" or "strong", show a percentage score for each answer based on how completely it addressed the JD requirement.
-
-
-## Screenshots
-
-### Upload
-![Upload](screenshots/upload.png)
-
-### Analysis Results
-![Summary](screenshots/summary.png)
-![Skill Gap](screenshots/skillgap.png)
-![Performance](screenshots/performance.png)
-![Roadmap](screenshots/roadmap.png)
-![Chat](screenshots/chat.png)
+**Direct S3 upload** — bypass the JarvisLabs proxy for file uploads. Currently limited to ~8MB due to proxy constraints. S3 presigned URLs would support hours of audio with no size limit.
