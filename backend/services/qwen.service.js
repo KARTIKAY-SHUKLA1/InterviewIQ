@@ -20,14 +20,14 @@ const generateAnalysis = async (resumeText, jdText, transcriptText) => {
 
 Read the following carefully:
 
-=== CANDIDATE RESUME ===
-${resumeText.slice(0, 1500)}
+RESUME:
+${resumeText}
 
-=== JOB DESCRIPTION ===
-${jdText.slice(0, 1500)}
+JOB DESCRIPTION:
+${jdText}
 
-=== INTERVIEW TRANSCRIPT (with timestamps) ===
-${transcriptText.slice(0, 2000)}
+INTERVIEW TRANSCRIPT (with timestamps):
+${transcriptText.slice(0, 3000)}
 
 Now analyze and produce feedback following these STRICT RULES:
 
