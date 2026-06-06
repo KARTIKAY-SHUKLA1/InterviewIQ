@@ -7,6 +7,103 @@ const getClient = () => {
   });
 };
 
+const generateRoadmapPeriod = async (client, resumeText, jdText, transcriptText, period, missingSkills, weakAnswers) => {
+  const periodConfig = {
+    "3": {
+      focus: "Address the most critical weakness identified in the transcript RIGHT NOW",
+      count: 3,
+      instruction: "Focus on quick wins — what can be done in 3 days to directly fix the biggest gap shown in the interview",
+      example: '{"day": 1, "task": "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — build Hello World API and understand routing"}'
+    },
+    "7": {
+      focus: "Bridge the skill gaps between resume and JD through daily practice",
+      count: 7,
+      instruction: "Each day must be different and progressively harder — day 1 is basics, day 7 is a small project",
+      example: '{"day": 4, "task": "Build a CRUD API with FastAPI and PostgreSQL — implement all 4 endpoints and test with Postman"}'
+    },
+    "14": {
+      focus: "Build a complete deployable project using the missing skills",
+      count: 7,
+      instruction: "Key milestones on days 1, 2, 4, 6, 8, 11, 14 — ends with a deployed project on GitHub",
+      example: '{"day": 14, "task": "Deploy document intelligence demo to Render.com — add live URL to resume and LinkedIn"}'
+    }
+  };
+
+  const config = periodConfig[period];
+  const missingSkillsList = missingSkills.slice(0, 5).join(", ");
+  const weaknessSummary = weakAnswers.map(a => a.question).join(", ");
+
+  const prompt = `You are a career coach. Generate a ${period}-day preparation plan for this candidate.
+
+CANDIDATE MISSING SKILLS: ${missingSkillsList}
+CANDIDATE WEAKNESSES FROM INTERVIEW: ${weaknessSummary}
+RESUME BACKGROUND: ${resumeText.slice(0, 500)}
+JOB REQUIRES: ${jdText.slice(0, 500)}
+
+GOAL: ${config.focus}
+INSTRUCTION: ${config.instruction}
+REQUIRED COUNT: Exactly ${config.count} items
+
+RULES:
+- Every task must name a SPECIFIC platform (LeetCode, Pramp, Coursera, GitHub, fastapi.tiangolo.com, docs.aws.amazon.com, neetcode.io, Render.com etc)
+- Every task must have a specific action (problem number, course name, chapter, project to build)
+- Tasks must be DIFFERENT from each other — no repeating the same platform twice in a row
+- Tasks must be progressive — easier to harder
+- FORBIDDEN: "practice algorithms", "study concepts", "learn about", "explore"
+
+Respond with ONLY a JSON array of exactly ${config.count} objects. No other text:
+[
+  ${config.example},
+  ...
+]`;
+
+  const response = await client.chat.completions.create({
+    model: process.env.QWEN_MODEL || "Qwen/Qwen3-8B",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.3,
+    max_tokens: 800,
+  });
+
+  const raw = response.choices[0].message.content;
+  const arrayMatch = raw.match(/\[[\s\S]*\]/);
+  if (!arrayMatch) return getDefaultRoadmapPeriod(period);
+  
+  try {
+    return JSON.parse(arrayMatch[0]);
+  } catch {
+    return getDefaultRoadmapPeriod(period);
+  }
+};
+
+const getDefaultRoadmapPeriod = (period) => {
+  const defaults = {
+    "3": [
+      { day: 1, task: "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — build a Hello World API and understand routing and request models" },
+      { day: 2, task: "Build a CRUD REST API with FastAPI and PostgreSQL — implement all 4 endpoints and test with Postman" },
+      { day: 3, task: "Deploy your FastAPI app to Render.com — follow their deployment guide and get a live URL" },
+    ],
+    "7": [
+      { day: 1, task: "Read AWS Bedrock overview at docs.aws.amazon.com/bedrock — understand foundation models and inference APIs" },
+      { day: 2, task: "Complete AWS Bedrock workshop at workshops.aws — follow the RAG with Knowledge Bases module hands-on" },
+      { day: 3, task: "Build a simple document Q&A using AWS Bedrock Claude API — upload PDF, extract text, query with Claude" },
+      { day: 4, task: "Study Neo4j fundamentals at neo4j.com/graphacademy — complete the free Neo4j Fundamentals course" },
+      { day: 5, task: "Build a simple knowledge graph in Neo4j — model 3 entities and write 5 Cypher queries to traverse relationships" },
+      { day: 6, task: "Complete 3 mock interviews on Pramp.com — focus on explaining RAG pipeline architecture clearly" },
+      { day: 7, task: "Push all projects to GitHub with detailed READMEs — write a blog post summarizing what you learned" },
+    ],
+    "14": [
+      { day: 1, task: "Start building document intelligence demo in Python — OCR a PDF using PyMuPDF and extract text" },
+      { day: 2, task: "Add chunking and embeddings using sentence-transformers — store vectors in Qdrant Python client" },
+      { day: 4, task: "Integrate AWS Bedrock Claude as LLM — implement full RAG pipeline with grounded answers" },
+      { day: 6, task: "Build FastAPI backend — endpoints for upload, process, and query — test all endpoints with Postman" },
+      { day: 8, task: "Add React frontend — file upload, query input, display answers with source citations" },
+      { day: 11, task: "Deploy full stack — FastAPI on Render.com, React on Vercel, Qdrant Cloud for vector storage" },
+      { day: 14, task: "Polish demo, write detailed README with architecture diagram, add to resume and LinkedIn" },
+    ],
+  };
+  return defaults[period] || defaults["3"];
+};
+
 const generateAnalysis = async (resumeText, jdText, transcriptText) => {
   if (!process.env.QWEN_API_URL) {
     console.log("⚠️  Qwen stub mode");
@@ -16,9 +113,7 @@ const generateAnalysis = async (resumeText, jdText, transcriptText) => {
   try {
     const client = getClient();
 
-    const prompt = `You are a senior technical interviewer and career coach at a top tech company. Your job is to give the most honest, specific, and actionable interview feedback possible.
-
-Read the following carefully:
+    const prompt = `You are a senior technical interviewer and career coach. Analyze this real interview carefully.
 
 RESUME:
 ${resumeText}
@@ -27,46 +122,26 @@ JOB DESCRIPTION:
 ${jdText}
 
 INTERVIEW TRANSCRIPT (with timestamps):
-${transcriptText.slice(0, 3000)}
+${transcriptText.slice(0, 2000)}
 
-Now analyze and produce feedback following these STRICT RULES:
-
---- SUMMARY RULES ---
-- questionsAsked: list the EXACT questions asked in the transcript word for word
-- topicsCovered: list specific technical topics discussed
-- overallSummary: write 3 sentences — sentence 1: what role and what was tested, sentence 2: what candidate did well with specific transcript evidence, sentence 3: what candidate struggled with and how it relates to JD
-
---- SKILL GAP RULES ---
-- candidateSkills: ONLY skills explicitly in resume
-- requiredSkills: ONLY skills explicitly in JD
-- missingSkills: skills in JD completely absent from resume — ZERO overlap with candidateSkills
-- matchScore: integer percentage of JD skills found in resume
-
---- PERFORMANCE RULES ---
+STRICT RULES:
 - strongAnswers and weakAnswers MUST be about COMPLETELY DIFFERENT questions or aspects
-- strongAnswers.why: MUST start with exact timestamp e.g. "At [00:15] you said..."
-- weakAnswers.why: MUST start with exact timestamp e.g. "At [03:28] you said..."
-- weakAnswers.improvement: MUST name specific platform AND specific resource
+- strongAnswers.why MUST start with exact timestamp e.g. "At [00:15] you said..."
+- weakAnswers.why MUST start with exact timestamp e.g. "At [03:28] you said..."
+- weakAnswers.improvement MUST name specific platform AND specific resource
+- overallSummary: 3 sentences — role applied for, what candidate did well with transcript evidence, what candidate struggled with
+- Do NOT generate roadmap — it will be generated separately
 
---- ROADMAP RULES ---
-- CRITICAL: threeDays MUST have EXACTLY 3 items. sevenDays MUST have EXACTLY 7 items. fourteenDays MUST have EXACTLY 7 items.
-- Every task must name a specific platform (LeetCode, Pramp, neetcode.io, Coursera, YouTube, GitHub, fastapi.tiangolo.com etc)
-- Every task must include specific action (problem number, course name, chapter, project idea)
-- FORBIDDEN: "practice algorithms", "study concepts", "explore topics", "learn about"
-- threeDays: address most critical weakness from transcript
-- sevenDays: bridge biggest skill gap between resume and JD day by day
-- fourteenDays: key milestones spread across 2 weeks ending with a deployable project
-
-Respond with ONLY valid JSON. No explanation, no markdown, no text outside JSON:
+Respond with ONLY valid JSON:
 {
   "summary": {
     "questionsAsked": ["exact question from transcript"],
     "topicsCovered": ["specific technical topic"],
-    "overallSummary": "3 sentences following rules above"
+    "overallSummary": "3 sentences"
   },
   "skillGap": {
-    "requiredSkills": ["exact skill from JD"],
-    "candidateSkills": ["exact skill from resume"],
+    "requiredSkills": ["skill from JD"],
+    "candidateSkills": ["skill from resume"],
     "missingSkills": ["skill in JD not in resume"],
     "matchScore": 65
   },
@@ -81,35 +156,10 @@ Respond with ONLY valid JSON. No explanation, no markdown, no text outside JSON:
       {
         "question": "DIFFERENT specific aspect candidate struggled with",
         "why": "At [0X:XX] you said '[exact quote]' which shows [specific weakness]",
-        "improvement": "[Platform] — [specific resource]: [specific action with measurable goal]"
+        "improvement": "[Platform] — [specific resource]: [specific action]"
       }
     ],
     "overallScore": 55
-  },
-  "roadmap": {
-    "threeDays": [
-      {"day": 1, "task": "specific day 1 task with platform and resource name"},
-      {"day": 2, "task": "specific day 2 task with platform and resource name"},
-      {"day": 3, "task": "specific day 3 task with platform and resource name"}
-    ],
-    "sevenDays": [
-      {"day": 1, "task": "specific task with platform"},
-      {"day": 2, "task": "specific task with platform"},
-      {"day": 3, "task": "specific task with platform"},
-      {"day": 4, "task": "specific task with platform"},
-      {"day": 5, "task": "specific task with platform"},
-      {"day": 6, "task": "specific task with platform"},
-      {"day": 7, "task": "specific task with platform"}
-    ],
-    "fourteenDays": [
-      {"day": 1, "task": "specific starting task"},
-      {"day": 2, "task": "specific task"},
-      {"day": 4, "task": "specific mid-week task"},
-      {"day": 6, "task": "specific task"},
-      {"day": 8, "task": "specific week 2 task"},
-      {"day": 11, "task": "specific task"},
-      {"day": 14, "task": "final deployable project — push to GitHub and add to resume"}
-    ]
   }
 }`;
 
@@ -117,13 +167,39 @@ Respond with ONLY valid JSON. No explanation, no markdown, no text outside JSON:
       model: process.env.QWEN_MODEL || "Qwen/Qwen3-8B",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
-      max_tokens: 2000,
+      max_tokens: 1200,
     });
 
     const raw = response.choices[0].message.content;
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("Qwen did not return valid JSON");
-    return JSON.parse(jsonMatch[0]);
+    const analysis = JSON.parse(jsonMatch[0]);
+
+    // Generate roadmap separately with 3 focused calls
+    console.log("Generating 3-day roadmap...");
+    const threeDays = await generateRoadmapPeriod(
+      client, resumeText, jdText, transcriptText, "3",
+      analysis.skillGap?.missingSkills || [],
+      analysis.performance?.weakAnswers || []
+    );
+
+    console.log("Generating 7-day roadmap...");
+    const sevenDays = await generateRoadmapPeriod(
+      client, resumeText, jdText, transcriptText, "7",
+      analysis.skillGap?.missingSkills || [],
+      analysis.performance?.weakAnswers || []
+    );
+
+    console.log("Generating 14-day roadmap...");
+    const fourteenDays = await generateRoadmapPeriod(
+      client, resumeText, jdText, transcriptText, "14",
+      analysis.skillGap?.missingSkills || [],
+      analysis.performance?.weakAnswers || []
+    );
+
+    analysis.roadmap = { threeDays, sevenDays, fourteenDays };
+
+    return analysis;
 
   } catch (error) {
     console.error("Qwen error:", error.message);
@@ -150,22 +226,22 @@ const chatWithContext = async (question, retrievedChunks, conversationHistory = 
       })
       .join("\n\n");
 
-    const systemPrompt = `You are InterviewIQ, an expert interview coach with 10 years of experience helping candidates get hired at top tech companies.
+    const systemPrompt = `You are InterviewIQ, an expert interview coach with 10 years of experience.
 
-You have access to three documents:
+You have access to:
 1. Candidate resume
-2. Job description they applied for
+2. Job description
 3. Interview transcript with exact timestamps
 
-Rules you must follow every single time:
-- Answer ONLY using the provided context — never invent or assume
-- Always cite source: (from resume) / (from jobDescription) / (from transcript)
-- For transcript always include timestamp: "at [03:28] you said..."
+Rules:
+- Answer ONLY from provided context
+- Always cite source (resume / jobDescription / transcript)
+- For transcript always include timestamp e.g. "at [03:28] you said..."
 - Quote candidate's exact words when possible
 - Be direct and specific — no filler phrases
-- If asked about weak answers → find exact transcript moment with timestamp and quote
+- If asked about weak answers → find exact transcript moment with timestamp
 - If asked about missing skills → name exact skills from JD not in resume
-- If asked for a score → give specific number with breakdown
+- If asked for score → give specific number with breakdown
 - If asked what to study → name specific platform and resource
 - Keep answers under 200 words
 - Use **bold** for timestamps and key skills`;
@@ -175,7 +251,7 @@ Rules you must follow every single time:
       ...conversationHistory.slice(-4),
       {
         role: "user",
-        content: `Context from candidate documents:\n\n${context}\n\nQuestion: ${question}`,
+        content: `Context:\n\n${context}\n\nQuestion: ${question}`,
       },
     ];
 
@@ -214,7 +290,6 @@ const getStubAnalysis = () => ({
       "AI/LLM API integration",
       "Python backend development",
       "Document intelligence pipelines",
-      "Self-awareness and technical gaps",
     ],
     overallSummary:
       "Candidate applied for Software Engineering Intern at Livo AI requiring Python, FastAPI, AWS Bedrock and RAG pipelines. At [01:45] candidate demonstrated strong RAG pipeline knowledge through InterviewIQ project showing real hands-on AI experience. However candidate lacks Python backend and AWS Bedrock experience which are core daily requirements at Livo AI.",
@@ -229,14 +304,14 @@ const getStubAnalysis = () => ({
     strongAnswers: [
       {
         question: "RAG pipeline architecture and AI integration",
-        why: "At [01:45] you said 'I built a complete RAG pipeline using Whisper, BGE embeddings, Qdrant vector database, and Qwen for inference' showing deep hands-on experience directly relevant to Livo's document intelligence work",
+        why: "At [01:45] you said 'I built a complete RAG pipeline using Whisper, BGE embeddings, Qdrant, and Qwen' showing deep hands-on experience directly relevant to Livo's document intelligence work",
       },
     ],
     weakAnswers: [
       {
         question: "Python backend and FastAPI experience",
         why: "At [03:12] you said 'I have not built a production Python backend' which is a critical gap since Livo's entire stack is Python and FastAPI",
-        improvement: "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — complete the full tutorial and build a CRUD API with PostgreSQL in 3 days",
+        improvement: "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — complete full tutorial and build CRUD API with PostgreSQL in 3 days",
       },
     ],
     overallScore: 52,
@@ -246,23 +321,31 @@ const getStubAnalysis = () => ({
       formula: "40% skill match + 60% answer performance",
     },
   },
-  "roadmap": {
-  "threeDays": [
-    "Day 1-3 specific task with platform addressing top transcript weakness",
-    "Day 2 specific task with platform bridging resume gap",
-    "Day 3 specific deliverable to complete"
-  ],
-  "sevenDays": [
-    "Day 4 specific task continuing from 3-day plan",
-    "Day 5-6 specific task addressing biggest JD skill gap",
-    "Day 7 specific deliverable — push to GitHub"
-  ],
-  "fourteenDays": [
-    "Week 2 Day 8-10 specific task building on week 1",
-    "Day 11-13 specific task — build complete project using missing skills",
-    "Day 14 final deliverable — deployed project add to resume"
-  ]
-},
+  roadmap: {
+    threeDays: [
+      { day: 1, task: "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — build Hello World API, understand routing and request models" },
+      { day: 2, task: "Build CRUD REST API with FastAPI and PostgreSQL — implement all 4 endpoints and test with Postman" },
+      { day: 3, task: "Deploy FastAPI app to Render.com — get a live URL and add to GitHub README" },
+    ],
+    sevenDays: [
+      { day: 1, task: "Read AWS Bedrock docs at docs.aws.amazon.com/bedrock — understand foundation models and Claude API" },
+      { day: 2, task: "Complete AWS Bedrock workshop at workshops.aws — follow RAG with Knowledge Bases module" },
+      { day: 3, task: "Build document Q&A with AWS Bedrock Claude — upload PDF, extract text, query with Claude API" },
+      { day: 4, task: "Study Neo4j at neo4j.com/graphacademy — complete free Neo4j Fundamentals course" },
+      { day: 5, task: "Build knowledge graph in Neo4j — model 3 entities and write 5 Cypher traversal queries" },
+      { day: 6, task: "Complete 3 mock interviews on Pramp.com — practice explaining RAG pipeline architecture" },
+      { day: 7, task: "Push all week projects to GitHub with README — document what you built and learned" },
+    ],
+    fourteenDays: [
+      { day: 1, task: "Start document intelligence demo in Python — use PyMuPDF to extract text from PDFs" },
+      { day: 2, task: "Add chunking and embeddings using sentence-transformers — store in Qdrant Python client" },
+      { day: 4, task: "Integrate AWS Bedrock Claude as LLM — build full RAG pipeline with grounded answers" },
+      { day: 6, task: "Build FastAPI backend — upload, process, query endpoints — test with Postman" },
+      { day: 8, task: "Add React frontend — file upload UI, query input, answer display with source citations" },
+      { day: 11, task: "Deploy full stack — FastAPI on Render, React on Vercel, Qdrant Cloud" },
+      { day: 14, task: "Polish demo, write README with architecture diagram, add live URL to resume and LinkedIn" },
+    ],
+  },
 });
 
 module.exports = { generateAnalysis, chatWithContext };
