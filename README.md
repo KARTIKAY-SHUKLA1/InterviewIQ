@@ -146,3 +146,16 @@ This is a JarvisLabs assessment — running open models on GPU is the whole poin
 4. **Persistent storage** — analysis results live in memory and disappear on restart. MongoDB is already in the stack, just not wired up for session persistence.
 
 5. **Confidence scoring per answer** — instead of just "weak" or "strong", show a percentage score for each answer based on how completely it addressed the JD requirement.
+
+
+## Screenshots
+
+### Upload
+![Upload](screenshots/upload.png)
+
+### Analysis Results
+![Summary](screenshots/summary.png)
+![Skill Gap](screenshots/skillgap.png)
+![Performance](screenshots/performance.png)
+![Roadmap](screenshots/roadmap.png)
+![Chat](screenshots/chat.png)
