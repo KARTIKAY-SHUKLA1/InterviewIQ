@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+openai-whisper
+transformers
+torch
+sentence-transformers
+accelerate
+python-multipart
