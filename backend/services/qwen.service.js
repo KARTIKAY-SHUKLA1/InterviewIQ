@@ -33,88 +33,91 @@ Now analyze and produce feedback following these STRICT RULES:
 
 --- SUMMARY RULES ---
 - questionsAsked: list the EXACT questions asked in the transcript word for word
-- topicsCovered: list specific technical topics discussed (not generic like "algorithms" but specific like "binary search on peak finding arrays")
-- overallSummary: write 3 sentences — sentence 1: what role the candidate applied for and what technical area was tested, sentence 2: what the candidate did well with specific evidence from transcript, sentence 3: what the candidate struggled with and how it relates to JD requirements
+- topicsCovered: list specific technical topics discussed
+- overallSummary: write 3 sentences — sentence 1: what role and what was tested, sentence 2: what candidate did well with specific transcript evidence, sentence 3: what candidate struggled with and how it relates to JD
 
 --- SKILL GAP RULES ---
-- candidateSkills: extract ONLY skills explicitly mentioned in the resume text above — use exact terms from resume
-- requiredSkills: extract ONLY skills explicitly mentioned in the JD text above — use exact terms from JD
-- missingSkills: compute this as (requiredSkills minus candidateSkills) — skills that appear in JD but are completely absent from resume — ZERO overlap with candidateSkills allowed
-- matchScore: calculate as integer percentage = (number of requiredSkills found in candidateSkills / total requiredSkills) * 100
+- candidateSkills: ONLY skills explicitly in resume
+- requiredSkills: ONLY skills explicitly in JD
+- missingSkills: skills in JD completely absent from resume — ZERO overlap with candidateSkills
+- matchScore: integer percentage of JD skills found in resume
 
 --- PERFORMANCE RULES ---
-- strongAnswers and weakAnswers MUST be about DIFFERENT aspects — never the same question in both
-- If only one question in transcript, split into different aspects: e.g. "Problem comprehension" vs "Solution completeness"
-- strongAnswers.why: MUST include exact timestamp and quote candidate's words e.g. "At [00:15] you correctly said 'the array first increases then decreases' showing strong problem analysis"
-- weakAnswers.why: MUST include exact timestamp and quote candidate's words showing the weakness
-- weakAnswers.improvement: MUST be a specific resource — include platform name AND specific problem/course/chapter name
+- strongAnswers and weakAnswers MUST be about COMPLETELY DIFFERENT questions or aspects
+- strongAnswers.why: MUST start with exact timestamp e.g. "At [00:15] you said..."
+- weakAnswers.why: MUST start with exact timestamp e.g. "At [03:28] you said..."
+- weakAnswers.improvement: MUST name specific platform AND specific resource
 
 --- ROADMAP RULES ---
-- Every task must be 100% specific to THIS candidate's gaps identified above
-- Every task must name a specific platform (LeetCode, Pramp, neetcode.io, Coursera, YouTube, GitHub, docs.python.org etc)
-- Every task must include a specific action (problem number, course name, chapter, project idea)
-- FORBIDDEN generic phrases: "practice algorithms", "study concepts", "explore topics", "learn about", "attend workshops"
-- threeDays: focus on the most critical weakness from the transcript
-- sevenDays: focus on bridging the biggest skill gap between resume and JD
-- fourteenDays: focus on building something demonstrable using the missing skills
+- CRITICAL: threeDays MUST have EXACTLY 3 items. sevenDays MUST have EXACTLY 7 items. fourteenDays MUST have EXACTLY 7 items.
+- Every task must name a specific platform (LeetCode, Pramp, neetcode.io, Coursera, YouTube, GitHub, fastapi.tiangolo.com etc)
+- Every task must include specific action (problem number, course name, chapter, project idea)
+- FORBIDDEN: "practice algorithms", "study concepts", "explore topics", "learn about"
+- threeDays: address most critical weakness from transcript
+- sevenDays: bridge biggest skill gap between resume and JD day by day
+- fourteenDays: key milestones spread across 2 weeks ending with a deployable project
 
-Respond with ONLY valid JSON. No explanation, no markdown, no text outside the JSON:
+Respond with ONLY valid JSON. No explanation, no markdown, no text outside JSON:
 {
   "summary": {
     "questionsAsked": ["exact question from transcript"],
-    "topicsCovered": ["specific technical topic e.g. Binary search on peak finding arrays"],
-    "overallSummary": "3 sentences following the rules above"
+    "topicsCovered": ["specific technical topic"],
+    "overallSummary": "3 sentences following rules above"
   },
   "skillGap": {
     "requiredSkills": ["exact skill from JD"],
     "candidateSkills": ["exact skill from resume"],
-    "missingSkills": ["skill in JD not in resume — zero overlap"],
+    "missingSkills": ["skill in JD not in resume"],
     "matchScore": 65
   },
   "performance": {
     "strongAnswers": [
       {
-        "question": "specific aspect candidate handled well e.g. Problem comprehension and edge case clarification",
+        "question": "specific aspect candidate handled well",
         "why": "At [00:XX] you said '[exact quote]' which shows [specific strength]"
       }
     ],
     "weakAnswers": [
       {
-        "question": "DIFFERENT specific aspect candidate struggled with e.g. Implementing complete binary search solution",
+        "question": "DIFFERENT specific aspect candidate struggled with",
         "why": "At [0X:XX] you said '[exact quote]' which shows [specific weakness]",
-        "improvement": "[Platform name] — [specific resource]: [specific action with measurable goal]"
+        "improvement": "[Platform] — [specific resource]: [specific action with measurable goal]"
       }
     ],
     "overallScore": 55
   },
   "roadmap": {
-  "threeDays": [
-    {"day": 1, "task": "specific day 1 task with platform and resource"},
-    {"day": 2, "task": "specific day 2 task with platform and resource"},
-    {"day": 3, "task": "specific day 3 task with platform and resource"}
-  ],
-  "sevenDays": [
-    {"day": 1, "task": "specific task"},
-    {"day": 2, "task": "specific task"},
-    {"day": 3, "task": "specific task"},
-    {"day": 4, "task": "specific task"},
-    {"day": 5, "task": "specific task"},
-    {"day": 6, "task": "specific task"},
-    {"day": 7, "task": "specific task"}
-  ],
-  "fourteenDays": [
-    {"day": 1, "task": "specific task"},
-    {"day": 7, "task": "mid-point milestone"},
-    {"day": 14, "task": "final deliverable"}
-  ]
-}
+    "threeDays": [
+      {"day": 1, "task": "specific day 1 task with platform and resource name"},
+      {"day": 2, "task": "specific day 2 task with platform and resource name"},
+      {"day": 3, "task": "specific day 3 task with platform and resource name"}
+    ],
+    "sevenDays": [
+      {"day": 1, "task": "specific task with platform"},
+      {"day": 2, "task": "specific task with platform"},
+      {"day": 3, "task": "specific task with platform"},
+      {"day": 4, "task": "specific task with platform"},
+      {"day": 5, "task": "specific task with platform"},
+      {"day": 6, "task": "specific task with platform"},
+      {"day": 7, "task": "specific task with platform"}
+    ],
+    "fourteenDays": [
+      {"day": 1, "task": "specific starting task"},
+      {"day": 2, "task": "specific task"},
+      {"day": 4, "task": "specific mid-week task"},
+      {"day": 6, "task": "specific task"},
+      {"day": 8, "task": "specific week 2 task"},
+      {"day": 11, "task": "specific task"},
+      {"day": 14, "task": "final deployable project — push to GitHub and add to resume"}
+    ]
+  }
 }`;
 
     const response = await client.chat.completions.create({
       model: process.env.QWEN_MODEL || "Qwen/Qwen3-8B",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
-      max_tokens: 1500,
+      max_tokens: 2000,
     });
 
     const raw = response.choices[0].message.content;
@@ -150,19 +153,17 @@ const chatWithContext = async (question, retrievedChunks, conversationHistory = 
     const systemPrompt = `You are InterviewIQ, an expert interview coach with 10 years of experience helping candidates get hired at top tech companies.
 
 You have access to three documents:
-1. Candidate's resume
-2. Job description they applied for  
-3. Their interview transcript with exact timestamps
-
-Your job is to give honest, specific, actionable answers.
+1. Candidate resume
+2. Job description they applied for
+3. Interview transcript with exact timestamps
 
 Rules you must follow every single time:
 - Answer ONLY using the provided context — never invent or assume
-- Always say which source your answer comes from: (from resume) / (from jobDescription) / (from transcript)
+- Always cite source: (from resume) / (from jobDescription) / (from transcript)
 - For transcript always include timestamp: "at [03:28] you said..."
-- Quote the candidate's exact words when possible
-- Be direct and specific — no filler phrases like "great question" or "it's important to"
-- If asked about weak answers → find exact moment in transcript with timestamp and quote
+- Quote candidate's exact words when possible
+- Be direct and specific — no filler phrases
+- If asked about weak answers → find exact transcript moment with timestamp and quote
 - If asked about missing skills → name exact skills from JD not in resume
 - If asked for a score → give specific number with breakdown
 - If asked what to study → name specific platform and resource
@@ -202,53 +203,72 @@ Rules you must follow every single time:
 const getStubAnalysis = () => ({
   summary: {
     questionsAsked: [
-      "Tell me about your experience with React and TypeScript",
-      "How would you approach building a document intelligence pipeline?",
-      "Where are you weak technically?",
+      "Tell me about yourself and why Livo AI?",
+      "What is your experience with AI and LLM APIs?",
+      "What is your experience with Python?",
+      "How would you approach a document intelligence pipeline?",
+      "What is your weakest area for this role?",
     ],
     topicsCovered: [
-      "React and TypeScript frontend development",
-      "AI/LLM API integration",
       "RAG pipeline architecture",
-      "Self-awareness and growth areas",
+      "AI/LLM API integration",
+      "Python backend development",
+      "Document intelligence pipelines",
+      "Self-awareness and technical gaps",
     ],
     overallSummary:
-      "Candidate applied for a Software Engineering Intern role at Livo AI requiring Python, FastAPI, AWS Bedrock and RAG pipelines. At [01:45] candidate demonstrated strong React and Node.js experience through CodeLens project and showed genuine interest in AI product work. However candidate lacks Python, FastAPI and AWS Bedrock experience which are core requirements of the role.",
+      "Candidate applied for Software Engineering Intern at Livo AI requiring Python, FastAPI, AWS Bedrock and RAG pipelines. At [01:45] candidate demonstrated strong RAG pipeline knowledge through InterviewIQ project showing real hands-on AI experience. However candidate lacks Python backend and AWS Bedrock experience which are core daily requirements at Livo AI.",
   },
   skillGap: {
-    requiredSkills: ["Python", "FastAPI", "React", "AWS Bedrock", "Vector DB", "Neo4j", "RAG pipelines", "LLM APIs"],
+    requiredSkills: ["Python", "FastAPI", "React", "AWS Bedrock", "Vector DB", "Neo4j", "RAG", "LLM APIs"],
     candidateSkills: ["React", "Node.js", "Express", "MongoDB", "TypeScript", "REST APIs", "WebSockets", "JWT"],
-    missingSkills: ["Python", "FastAPI", "AWS Bedrock", "Neo4j", "RAG pipelines"],
+    missingSkills: ["Python", "FastAPI", "AWS Bedrock", "Neo4j"],
     matchScore: 38,
   },
   performance: {
     strongAnswers: [
       {
-        question: "AI/LLM API integration experience",
-        why: "At [01:45] you said 'I built CodeLens which integrates with GenAI APIs to analyze code across 12 languages' showing real hands-on AI integration experience that directly aligns with Livo's work",
+        question: "RAG pipeline architecture and AI integration",
+        why: "At [01:45] you said 'I built a complete RAG pipeline using Whisper, BGE embeddings, Qdrant vector database, and Qwen for inference' showing deep hands-on experience directly relevant to Livo's document intelligence work",
       },
     ],
     weakAnswers: [
       {
-        question: "Backend architecture and Python ecosystem",
-        why: "At [03:12] you said 'I haven't used FastAPI or Python backends' which is a significant gap since Livo's entire stack is Python + FastAPI",
-        improvement: "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — complete the full tutorial in 3 days and build a simple REST API — this is the most critical gap to close",
+        question: "Python backend and FastAPI experience",
+        why: "At [03:12] you said 'I have not built a production Python backend' which is a critical gap since Livo's entire stack is Python and FastAPI",
+        improvement: "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — complete the full tutorial and build a CRUD API with PostgreSQL in 3 days",
       },
     ],
     overallScore: 52,
+    scoreBreakdown: {
+      skillMatch: 38,
+      performanceRatio: 60,
+      formula: "40% skill match + 60% answer performance",
+    },
   },
   roadmap: {
     threeDays: [
-      "Complete FastAPI official tutorial at fastapi.tiangolo.com/tutorial — build a simple CRUD API with PostgreSQL to match Livo's stack",
-      "Read Livo's website livoassistant.com and understand their 3 main product areas — prepare specific answers for why you want to work there",
+      { day: 1, task: "Complete FastAPI official tutorial at fastapi.tiangolo.com/tutorial — build a simple Hello World API and understand routing, request models, and responses" },
+      { day: 2, task: "Build a CRUD REST API with FastAPI and PostgreSQL following the SQLModel tutorial at sqlmodel.tiangolo.com — implement create, read, update, delete endpoints" },
+      { day: 3, task: "Deploy your FastAPI app to Render.com — follow their FastAPI deployment guide and add the live URL to your GitHub README" },
     ],
     sevenDays: [
-      "Build a simple RAG pipeline using Python + FAISS or Qdrant — index 10 PDFs and build a Q&A system — push to GitHub",
-      "Complete 3 mock interviews on Pramp.com focusing on system design questions about document processing pipelines",
+      { day: 1, task: "Read AWS Bedrock overview at docs.aws.amazon.com/bedrock — understand foundation models, inference APIs, and how RAG works with Bedrock" },
+      { day: 2, task: "Complete AWS Bedrock workshop at workshops.aws/bedrock — follow the RAG with Knowledge Bases module hands-on" },
+      { day: 3, task: "Build a simple document Q&A using AWS Bedrock Claude API — upload a PDF, extract text, query with Claude via Bedrock SDK" },
+      { day: 4, task: "Study Neo4j fundamentals at neo4j.com/graphacademy — complete the free Neo4j Fundamentals course covering nodes, relationships, and Cypher queries" },
+      { day: 5, task: "Build a simple knowledge graph in Neo4j — model 3 entities from a real dataset and write 5 Cypher queries to traverse relationships" },
+      { day: 6, task: "Complete 3 mock interviews on Pramp.com — focus on explaining your RAG pipeline architecture clearly and confidently" },
+      { day: 7, task: "Review all projects built this week — write a blog post or README explaining what you built and push everything to GitHub" },
     ],
     fourteenDays: [
-      "Build a document intelligence demo: upload a PDF → extract text → chunk → embed → query with LLM → deploy on Render — add to resume",
-      "Study AWS Bedrock through official workshop at workshops.aws — focus on the RAG with Bedrock module",
+      { day: 1, task: "Start building a document intelligence demo in Python — OCR a PDF using PyMuPDF, extract text, chunk it, embed with sentence-transformers" },
+      { day: 2, task: "Add vector search to your demo using Qdrant Python client — store embeddings and implement semantic search over your PDF chunks" },
+      { day: 4, task: "Integrate AWS Bedrock Claude as the LLM in your pipeline — implement full RAG: retrieve chunks from Qdrant, pass to Claude, get grounded answers" },
+      { day: 6, task: "Build a FastAPI backend for your document intelligence demo — endpoints for upload, process, and query — test with Postman" },
+      { day: 8, task: "Add a simple React frontend to your demo — file upload, query input, display answers with source citations — connect to your FastAPI backend" },
+      { day: 11, task: "Deploy the full stack — FastAPI on Render.com, React on Vercel, Qdrant Cloud for vector storage — make sure end to end works" },
+      { day: 14, task: "Polish the demo, write a detailed README with architecture diagram, add to resume and LinkedIn — this is now your strongest project for Livo AI interviews" },
     ],
   },
 });
