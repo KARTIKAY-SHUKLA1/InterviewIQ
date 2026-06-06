@@ -101,29 +101,29 @@ These require combining information from multiple sources:
 
 ## Architecture Decisions
 
-**Whisper over cloud STT**
-Open source, runs on our GPU, no per-minute cost, interview audio stays private. Cloud APIs like AssemblyAI send your data to third-party servers.
+###Why Whisper instead of cloud speech-to-text APIs ?
+Interview recordings are personal and sensitive. Cloud APIs like AssemblyAI send your audio to third-party servers and charge per minute. Whisper is open source, runs on our own GPU, and costs nothing per call. Base model on A30 GPU handles a 10-minute interview in about 3-4 minutes.
 
-**BGE-large over OpenAI embeddings**
-BGE-large-en-v1.5 tops the MTEB retrieval benchmark for open models. Produces 1024-dim vectors, runs on our GPU, zero cost per call.
+###Why BGE-large for embeddings instead of OpenAI ?
+BGE-large-en-v1.5 ranks at the top of the MTEB retrieval benchmark for open models. It produces 1024-dimensional vectors, runs on our GPU, and has zero cost per call. OpenAI embeddings are proprietary and add external dependency.
 
-**Qdrant over Pinecone**
-Free cloud tier, payload filtering by sessionId keeps each interview isolated, JS client is clean.
+###Why Qdrant instead of Pinecone ?
+Qdrant has a free cloud tier that works without credit card. More importantly it supports payload filtering — we use this to filter chunks by sessionId so each interview analysis is completely isolated from others. Pinecone's free tier has stricter index limits.
 
-**Chunking with overlap instead of full-document embedding**
-200-word chunks with 40-word overlap. Without this, a single resume vector can't answer "what projects did I mention?" — you need chunk-level retrieval to get specific sections.
+###Why chunk text instead of embedding full documents ?
+A single resume vector can't answer "what projects did I mention?" — you need chunk-level retrieval. We split into 200-word pieces with 40-word overlap so context isn't lost at boundaries. This is what makes the chat actually precise rather than vague.
 
-**Async job processing with polling**
-Whisper takes 3-5 min on a 10-min file. Synchronous requests timeout through Cloudflare at 120 seconds. We return a jobId immediately and poll every 5 seconds. Standard pattern for long-running AI tasks.
+###Why async processing with polling instead of waiting for response ?
+Whisper takes 3-5 minutes on a 10-minute file. Synchronous HTTP requests timeout through Cloudflare at 120 seconds. We return a jobId immediately, process in background, frontend polls every 5 seconds. Standard pattern for long-running AI tasks.
 
-**Timestamp citations in chat**
-Whisper returns word-level timestamps. We store the start timestamp with each transcript chunk in Qdrant. When chat retrieves chunks, it includes the timestamp so Qwen can say "at 03:28 you said..." — this is what makes the answers verifiable, not just generic.
+###Why timestamp citations in chat ?
+Whisper returns word-level timestamps with every transcription. We store the start timestamp with each transcript chunk in Qdrant. When chat retrieves chunks, Qwen can say "at 03:28 you said..." so the user can verify exactly what moment in their interview is being referenced. This is what separates a useful answer from a generic one.
 
-**No LangChain**
-Built the RAG pipeline from scratch — custom chunker, direct Qdrant client, manual embedding calls. I wanted to understand every part of the pipeline and explain it clearly. LangChain would abstract it away.
+###Why not use LangChain ?
+I built the RAG pipeline from scratch — custom chunker, direct Qdrant client, manual embedding calls. I wanted to understand every component and explain it clearly in an interview. LangChain would abstract it away and I'd be guessing at what's happening under the hood.
 
-**Qwen3-1.7B over GPT-4**
-This is a JarvisLabs assessment — open models on GPU is the point. 1.7B fits in A30 VRAM. For production, Qwen3-8B on A100 would give sharper analysis.
+###Why Qwen3 instead of GPT-4 ?
+This is a JarvisLabs assessment — running open models on GPU is the whole point. Qwen3-1.7B fits in A30 VRAM and responds in 30-60 seconds. For production I'd use Qwen3-8B on an A100 for sharper analysis quality.
 
 ---
 
