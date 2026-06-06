@@ -246,31 +246,23 @@ const getStubAnalysis = () => ({
       formula: "40% skill match + 60% answer performance",
     },
   },
-  roadmap: {
-    threeDays: [
-      { day: 1, task: "Complete FastAPI official tutorial at fastapi.tiangolo.com/tutorial — build a simple Hello World API and understand routing, request models, and responses" },
-      { day: 2, task: "Build a CRUD REST API with FastAPI and PostgreSQL following the SQLModel tutorial at sqlmodel.tiangolo.com — implement create, read, update, delete endpoints" },
-      { day: 3, task: "Deploy your FastAPI app to Render.com — follow their FastAPI deployment guide and add the live URL to your GitHub README" },
-    ],
-    sevenDays: [
-      { day: 1, task: "Read AWS Bedrock overview at docs.aws.amazon.com/bedrock — understand foundation models, inference APIs, and how RAG works with Bedrock" },
-      { day: 2, task: "Complete AWS Bedrock workshop at workshops.aws/bedrock — follow the RAG with Knowledge Bases module hands-on" },
-      { day: 3, task: "Build a simple document Q&A using AWS Bedrock Claude API — upload a PDF, extract text, query with Claude via Bedrock SDK" },
-      { day: 4, task: "Study Neo4j fundamentals at neo4j.com/graphacademy — complete the free Neo4j Fundamentals course covering nodes, relationships, and Cypher queries" },
-      { day: 5, task: "Build a simple knowledge graph in Neo4j — model 3 entities from a real dataset and write 5 Cypher queries to traverse relationships" },
-      { day: 6, task: "Complete 3 mock interviews on Pramp.com — focus on explaining your RAG pipeline architecture clearly and confidently" },
-      { day: 7, task: "Review all projects built this week — write a blog post or README explaining what you built and push everything to GitHub" },
-    ],
-    fourteenDays: [
-      { day: 1, task: "Start building a document intelligence demo in Python — OCR a PDF using PyMuPDF, extract text, chunk it, embed with sentence-transformers" },
-      { day: 2, task: "Add vector search to your demo using Qdrant Python client — store embeddings and implement semantic search over your PDF chunks" },
-      { day: 4, task: "Integrate AWS Bedrock Claude as the LLM in your pipeline — implement full RAG: retrieve chunks from Qdrant, pass to Claude, get grounded answers" },
-      { day: 6, task: "Build a FastAPI backend for your document intelligence demo — endpoints for upload, process, and query — test with Postman" },
-      { day: 8, task: "Add a simple React frontend to your demo — file upload, query input, display answers with source citations — connect to your FastAPI backend" },
-      { day: 11, task: "Deploy the full stack — FastAPI on Render.com, React on Vercel, Qdrant Cloud for vector storage — make sure end to end works" },
-      { day: 14, task: "Polish the demo, write a detailed README with architecture diagram, add to resume and LinkedIn — this is now your strongest project for Livo AI interviews" },
-    ],
-  },
+  "roadmap": {
+  "threeDays": [
+    "Day 1-3 specific task with platform addressing top transcript weakness",
+    "Day 2 specific task with platform bridging resume gap",
+    "Day 3 specific deliverable to complete"
+  ],
+  "sevenDays": [
+    "Day 4 specific task continuing from 3-day plan",
+    "Day 5-6 specific task addressing biggest JD skill gap",
+    "Day 7 specific deliverable — push to GitHub"
+  ],
+  "fourteenDays": [
+    "Week 2 Day 8-10 specific task building on week 1",
+    "Day 11-13 specific task — build complete project using missing skills",
+    "Day 14 final deliverable — deployed project add to resume"
+  ]
+},
 });
 
 module.exports = { generateAnalysis, chatWithContext };
