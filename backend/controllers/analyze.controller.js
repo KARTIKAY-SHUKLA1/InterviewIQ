@@ -6,13 +6,10 @@ const { storeChunks } = require("../services/qdrant.service");
 const { generateAnalysis } = require("../services/qwen.service");
 const { v4: uuidv4 } = require("uuid");
 
-// In-memory job store
 const jobs = {};
 
-// Calculate scores deterministically instead of trusting Qwen
 const calculateScores = (analysis) => {
   try {
-    // Match score — how many JD required skills appear in candidate skills
     const required = analysis.skillGap.requiredSkills.map((s) =>
       s.toLowerCase().trim()
     );
@@ -34,30 +31,25 @@ const calculateScores = (analysis) => {
         ? Math.min(100, Math.round((matched / required.length) * 100))
         : 70;
 
-    // Fix missing skills — remove any that appear in candidate skills
     const missingSkills = analysis.skillGap.requiredSkills.filter((skill) => {
       const skillLower = skill.toLowerCase().trim();
       return !candidate.some(
         (cs) =>
           cs.includes(skillLower) ||
           skillLower.includes(cs) ||
-          cs.split(" ").some(
-            (word) => skillLower.includes(word) && word.length > 3
-          )
+          cs
+            .split(" ")
+            .some((word) => skillLower.includes(word) && word.length > 3)
       );
     });
 
-    // Performance score — ratio of strong to total answers
     const strong = analysis.performance.strongAnswers.length;
     const weak = analysis.performance.weakAnswers.length;
     const total = strong + weak;
     const performanceScore =
       total > 0 ? Math.round((strong / total) * 100) : 50;
 
-    // Overall score — weighted combination
-    const overallScore = Math.round(
-      matchScore * 0.4 + performanceScore * 0.6
-    );
+    const overallScore = Math.round(matchScore * 0.4 + performanceScore * 0.6);
 
     return {
       ...analysis,
@@ -72,12 +64,42 @@ const calculateScores = (analysis) => {
         scoreBreakdown: {
           skillMatch: matchScore,
           performanceRatio: performanceScore,
-          formula: "40% skill match + 60% answer performance ratio",
+          formula: "40% skill match + 60% answer performance",
         },
       },
     };
   } catch (error) {
     console.error("Score calculation error:", error.message);
+    return analysis;
+  }
+};
+
+const postProcessAnalysis = (analysis) => {
+  try {
+    // Fix: remove weak answers that have same question as strong answers
+    const strongQuestions = analysis.performance.strongAnswers.map((a) =>
+      a.question.toLowerCase().trim()
+    );
+
+    analysis.performance.weakAnswers = analysis.performance.weakAnswers.filter(
+      (a) => !strongQuestions.includes(a.question.toLowerCase().trim())
+    );
+
+    // If all weak answers got filtered, add a meaningful default
+    if (analysis.performance.weakAnswers.length === 0) {
+      analysis.performance.weakAnswers = [
+        {
+          question: "Completing full solution with all edge cases",
+          why: "Candidate did not fully implement the solution or address all edge cases during the interview",
+          improvement:
+            "Practice completing full solutions on LeetCode under time pressure — solve problems in the relevant topic area without hints",
+        },
+      ];
+    }
+
+    return analysis;
+  } catch (error) {
+    console.error("Post process error:", error.message);
     return analysis;
   }
 };
@@ -101,10 +123,8 @@ const analyzeInterview = async (req, res) => {
       error: null,
     };
 
-    // Return immediately with jobId
     res.status(202).json({ success: true, jobId, status: "processing" });
 
-    // Process in background
     processInBackground(jobId, resumePath, jobDescriptionPath, audioPath);
   } catch (error) {
     return res.status(500).json({
@@ -156,8 +176,8 @@ const processInBackground = async (
       transcriptResult.transcript
     );
 
-    // Calculate scores deterministically
-    const analysis = calculateScores(rawAnalysis);
+    // Calculate scores deterministically then post-process
+    const analysis = postProcessAnalysis(calculateScores(rawAnalysis));
 
     jobs[jobId] = {
       status: "done",

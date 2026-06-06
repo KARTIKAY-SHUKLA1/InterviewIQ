@@ -16,7 +16,7 @@ const generateAnalysis = async (resumeText, jdText, transcriptText) => {
   try {
     const client = getClient();
 
-    const prompt = `You are a senior technical interviewer and career coach with 10 years of experience. Analyze this real interview data extremely carefully and provide highly specific, actionable feedback.
+    const prompt = `You are a senior technical interviewer and career coach. Analyze this specific interview and give highly personalized feedback.
 
 CANDIDATE RESUME:
 ${resumeText.slice(0, 1500)}
@@ -24,64 +24,77 @@ ${resumeText.slice(0, 1500)}
 JOB DESCRIPTION:
 ${jdText.slice(0, 1500)}
 
-INTERVIEW TRANSCRIPT (with timestamps showing exact moments):
+INTERVIEW TRANSCRIPT (with timestamps):
 ${transcriptText.slice(0, 2000)}
 
-STRICT RULES — follow every rule exactly:
+STRICT RULES — read every rule carefully:
 
-1. candidateSkills = ONLY skills explicitly written in the resume above
-2. requiredSkills = ONLY skills explicitly written in the JD above
-3. missingSkills = skills in JD that do NOT appear anywhere in the resume — zero overlap with candidateSkills
-4. strongAnswers and weakAnswers MUST be about completely different questions/topics
-5. strongAnswers must cite a specific transcript moment with timestamp showing good performance
-6. weakAnswers must cite a specific transcript moment with timestamp showing weakness
-7. improvement in weakAnswers must be a specific actionable task with a real resource name
-8. roadmap tasks must be specific with actual resource names, platform names, problem numbers
-9. overallSummary must mention specific skills from resume, specific requirements from JD, and specific moments from transcript
-10. matchScore = percentage of JD required skills found in resume (calculate precisely)
-11. overallScore = honest assessment of interview performance based on transcript (be critical)
+RULE 1 — SKILL GAP:
+- candidateSkills = list ONLY skills explicitly written in the RESUME above
+- requiredSkills = list ONLY skills explicitly written in the JD above  
+- missingSkills = list ONLY skills that appear in JD but are COMPLETELY ABSENT from resume
+- missingSkills must have ZERO overlap with candidateSkills
 
-Respond with ONLY valid JSON, no explanation, no markdown:
+RULE 2 — PERFORMANCE:
+- strongAnswers and weakAnswers must be about COMPLETELY DIFFERENT questions or aspects
+- NEVER put the same question in both strongAnswers and weakAnswers
+- If only one question exists in transcript, split into different aspects e.g. "Problem comprehension" vs "Solution implementation"
+- strongAnswers.why MUST start with exact timestamp e.g. "At [00:15] candidate..."
+- weakAnswers.why MUST start with exact timestamp e.g. "At [03:28] candidate..."
+- weakAnswers.improvement must name a SPECIFIC platform, problem number, or resource URL
+
+RULE 3 — ROADMAP (most important):
+- Every roadmap task must be 100% personalized to THIS candidate's specific gaps
+- Look at missingSkills and weakAnswers — roadmap must directly address them
+- Every task must include a specific platform name (LeetCode, Pramp, neetcode.io, Coursera, YouTube channel name, GitHub repo name)
+- Every task must include a specific action (problem number, course name, chapter name, project idea)
+- NEVER write generic tasks like "practice algorithms" or "study AI concepts"
+- Example of BAD task: "Practice problem-solving skills"
+- Example of GOOD task: "Solve LeetCode #162 Find Peak Element and #852 Peak Index — use binary search approach, aim to solve in under 15 minutes without hints"
+- Example of BAD task: "Learn about AI strategy"  
+- Example of GOOD task: "Read Lokal's product blog and study how they use AI for local content — then read 'AI Product Manager' course on Coursera by Duke University"
+
+Respond with ONLY valid JSON, absolutely no other text:
 {
   "summary": {
-    "questionsAsked": ["exact question asked in transcript"],
-    "topicsCovered": ["specific technical topic discussed"],
-    "overallSummary": "2 specific sentences mentioning candidate name or role, specific skills demonstrated, specific gaps identified from the actual transcript and JD"
+    "questionsAsked": ["exact question from transcript"],
+    "topicsCovered": ["specific technical topic from transcript"],
+    "overallSummary": "2 sentences: first sentence mentions specific skills from resume and what JD requires, second sentence mentions specific moment from transcript with timestamp"
   },
   "skillGap": {
-    "requiredSkills": ["exact skill from JD"],
-    "candidateSkills": ["exact skill from resume"],
-    "missingSkills": ["skill in JD completely absent from resume — no overlap allowed"],
-    "matchScore": 65
+    "requiredSkills": ["skill from JD"],
+    "candidateSkills": ["skill from resume"],
+    "missingSkills": ["skill in JD not in resume"],
+    "matchScore": 60
   },
   "performance": {
     "strongAnswers": [
       {
-        "question": "specific question candidate answered well",
-        "why": "specific evidence from transcript with timestamp e.g. at [02:15] candidate correctly explained binary search approach showing strong algorithmic understanding"
+        "question": "specific ASPECT candidate handled well — not the full question",
+        "why": "At [00:XX] candidate [specific thing they did well with evidence from transcript]"
       }
     ],
     "weakAnswers": [
       {
-        "question": "DIFFERENT specific question candidate struggled with",
-        "why": "specific evidence from transcript with timestamp e.g. at [03:28] candidate said they were unsure showing lack of depth",
-        "improvement": "specific actionable resource e.g. Practice LeetCode problems #162 Find Peak Element and #852 Peak Index in Mountain Array, then read the binary search pattern guide on neetcode.io"
+        "question": "DIFFERENT specific ASPECT candidate struggled with",
+        "why": "At [0X:XX] candidate [specific thing they struggled with, exact words if possible]",
+        "improvement": "Specific action: [platform name] — [specific problem/course/resource] — [measurable goal]"
       }
     ],
-    "overallScore": 60
+    "overallScore": 55
   },
   "roadmap": {
     "threeDays": [
-      "specific task with specific resource e.g. Solve LeetCode #162 Find Peak Element and #852 Peak Index using binary search — aim to solve without hints",
-      "specific task with specific resource e.g. Watch Abdul Bari's algorithm playlist on YouTube covering divide and conquer"
+      "Directly address top weakness from transcript: [specific LeetCode problem or resource with number/link]",
+      "Bridge biggest skill gap from JD vs resume: [specific course or project with platform name]"
     ],
     "sevenDays": [
-      "specific task with specific resource e.g. Read System Design Primer on GitHub (github.com/donnemartin/system-design-primer) focusing on scalability chapter",
-      "specific task e.g. Complete 5 mock interviews on Pramp.com focusing on communication and explaining approach before coding"
+      "Deepen weak area identified in transcript: [specific resource with platform and chapter/section]",
+      "Practice interview communication: [specific mock interview platform with goal]"
     ],
     "fourteenDays": [
-      "specific task e.g. Build a full-stack project using the skills from JD that are missing from your resume — deploy it and add to GitHub",
-      "specific task e.g. Record yourself solving 3 algorithmic problems and review how clearly you explain your thought process"
+      "Build project using top missing JD skill: [specific project idea that demonstrates the missing skill]",
+      "Complete interview preparation: [specific final preparation resource]"
     ]
   }
 }`;
@@ -89,7 +102,7 @@ Respond with ONLY valid JSON, no explanation, no markdown:
     const response = await client.chat.completions.create({
       model: process.env.QWEN_MODEL || "Qwen/Qwen3-8B",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.3,
+      temperature: 0.2,
       max_tokens: 1500,
     });
 
@@ -126,20 +139,20 @@ const chatWithContext = async (question, retrievedChunks, conversationHistory = 
     const systemPrompt = `You are InterviewIQ, an expert interview coach with 10 years of experience helping candidates get hired at top tech companies.
 
 You have access to:
-- The candidate's resume
-- The job description they applied for
-- Their interview transcript with exact timestamps
+- Candidate resume
+- Job description they applied for
+- Interview transcript with exact timestamps
 
-Rules you must follow:
-- Answer ONLY using the provided context — never make things up
-- Always cite which source your answer comes from (resume / jobDescription / transcript)
-- For transcript references always include the timestamp e.g. "at [03:28] you said..."
-- Be specific and direct — give real actionable advice, not generic tips
-- If asked about weak answers, find the exact moment in transcript and explain why it was weak
-- If asked about missing skills, compare resume vs JD precisely
-- If asked for a rating, give a specific number with clear reasoning
-- Keep answers focused and under 200 words
-- Use bold for important points`;
+Rules:
+- Answer ONLY from the provided context — never make things up
+- Always cite source (resume / jobDescription / transcript)
+- For transcript always include timestamp e.g. "at [03:28] you said..."
+- Be specific — name actual skills, actual companies, actual problems
+- If asked about weak answers, find exact transcript moment with timestamp
+- If asked about missing skills, compare resume vs JD precisely and name exact missing skills
+- If asked for rating, give specific number with clear reasoning broken down
+- Keep answers focused under 200 words
+- Use **bold** for key points and timestamps`;
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -180,7 +193,7 @@ const getStubAnalysis = () => ({
     ],
     topicsCovered: ["React", "Node.js", "System Design", "Docker"],
     overallSummary:
-      "The candidate demonstrated strong frontend skills with React and Node.js but showed gaps in DevOps tooling. The JD requires Docker and AWS experience which are completely absent from the resume.",
+      "Candidate has strong React and Node.js experience from resume but the JD requires Docker and AWS which are completely absent. At [05:42] candidate gave a high-level system design answer without mentioning load balancers or caching.",
   },
   skillGap: {
     requiredSkills: ["React", "Node.js", "Docker", "AWS", "System Design"],
@@ -191,31 +204,31 @@ const getStubAnalysis = () => ({
   performance: {
     strongAnswers: [
       {
-        question: "React experience",
-        why: "At [02:15] candidate described building DevLinkr with WebSockets and JWT authentication showing strong practical experience"
+        question: "Problem comprehension and clarification",
+        why: "At [00:15] candidate correctly identified the core requirement and asked smart clarifying questions about edge cases showing strong analytical thinking",
       },
     ],
     weakAnswers: [
       {
-        question: "System design scalability",
-        why: "At [05:42] candidate gave a high-level answer without mentioning load balancers, caching, or database sharding",
-        improvement: "Read System Design Primer on GitHub (github.com/donnemartin/system-design-primer) and practice 3 mock system design interviews on Pramp.com",
+        question: "Implementing complete solution with edge cases",
+        why: "At [03:28] candidate said 'this is not my final answer' and did not complete the full implementation within the interview time",
+        improvement: "Solve LeetCode #162 Find Peak Element and #852 Peak Index on neetcode.io — practice completing full solutions in under 20 minutes without hints",
       },
     ],
     overallScore: 65,
   },
   roadmap: {
     threeDays: [
-      "Complete Docker getting started tutorial at docs.docker.com/get-started and dockerize one of your existing Node.js projects",
-      "Solve LeetCode #162 Find Peak Element and #33 Search in Rotated Sorted Array using binary search without hints"
+      "Solve LeetCode #162 Find Peak Element and #852 Peak Index in Mountain Array on neetcode.io — use binary search, complete without hints in under 20 minutes",
+      "Complete Docker getting started tutorial at docs.docker.com/get-started and containerize your existing Node.js project",
     ],
     sevenDays: [
-      "Read System Design Primer on GitHub focusing on scalability, load balancing, and caching chapters",
-      "Complete 3 mock interviews on Pramp.com focusing on explaining your approach before writing code"
+      "Complete 5 mock interviews on Pramp.com — practice explaining your full approach out loud before writing any code",
+      "Read System Design Primer chapter on scalability at github.com/donnemartin/system-design-primer",
     ],
     fourteenDays: [
-      "Deploy a project to AWS EC2 following the official AWS getting started guide — add it to your resume",
-      "Record yourself solving 3 algorithm problems and review how clearly you communicate your thought process"
+      "Deploy a Dockerized Node.js app to AWS EC2 following the official AWS tutorial — add to your GitHub and resume",
+      "Record yourself solving 3 LeetCode medium problems — review how clearly you explain your thought process",
     ],
   },
 });
