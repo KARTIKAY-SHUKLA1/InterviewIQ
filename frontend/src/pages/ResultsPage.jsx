@@ -228,29 +228,42 @@ const ResultsPage = ({ data, onBack }) => {
         )}
 
         {/* Roadmap */}
-        {activeTab === "roadmap" && (
-          <div>
-            <h2 className="text-xl font-semibold mb-6">Preparation Roadmap</h2>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "3 Days", items: analysis.roadmap.threeDays, color: "indigo" },
-                { label: "7 Days", items: analysis.roadmap.sevenDays, color: "purple" },
-                { label: "14 Days", items: analysis.roadmap.fourteenDays, color: "pink" },
-              ].map(({ label, items, color }) => (
-                <div key={label}>
-                  <h3 className={`text-sm font-bold mb-3 text-${color}-400`}>{label}</h3>
-                  <div className="space-y-2">
-                    {items.map((item, i) => (
-                      <div key={i} className="text-xs text-slate-400 bg-white/[0.03] border border-white/5 p-3 rounded-lg leading-relaxed">
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Roadmap */}
+{activeTab === "roadmap" && (
+  <div>
+    <h2 className="text-xl font-semibold mb-6">Preparation Roadmap</h2>
+    <div className="grid grid-cols-3 gap-6">
+      {[
+        { label: "3 Days", items: analysis.roadmap.threeDays, color: "indigo", accent: "border-indigo-500/30 bg-indigo-500/5" },
+        { label: "7 Days", items: analysis.roadmap.sevenDays, color: "purple", accent: "border-purple-500/30 bg-purple-500/5" },
+        { label: "14 Days", items: analysis.roadmap.fourteenDays, color: "pink", accent: "border-pink-500/30 bg-pink-500/5" },
+      ].map(({ label, items, color, accent }) => (
+        <div key={label}>
+          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${accent} mb-4`}>
+            <div className={`w-1.5 h-1.5 rounded-full bg-${color}-400`} />
+            <h3 className={`text-sm font-bold text-${color}-400`}>{label} Plan</h3>
           </div>
-        )}
+          <div className="space-y-3">
+            {items.map((item, i) => {
+              // Handle both string items and object items with day property
+              const isObject = typeof item === "object" && item !== null;
+              const dayLabel = isObject ? `Day ${item.day}` : `Day ${i + 1}`;
+              const taskText = isObject ? item.task : item;
+              return (
+                <div key={i} className="bg-white/[0.03] border border-white/5 rounded-xl p-3">
+                  <div className={`text-xs font-semibold text-${color}-400 mb-1`}>
+                    {dayLabel}
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">{taskText}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
         {/* Chat */}
         {activeTab === "chat" && (

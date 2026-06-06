@@ -88,19 +88,26 @@ Respond with ONLY valid JSON. No explanation, no markdown, no text outside the J
     "overallScore": 55
   },
   "roadmap": {
-    "threeDays": [
-      "Address transcript weakness: [specific LeetCode problem number and name] on neetcode.io — solve without hints in under [X] minutes",
-      "Quick skill bridge: [specific resource addressing top missing JD skill]"
-    ],
-    "sevenDays": [
-      "Deep dive on biggest JD gap: [specific course/resource with platform and chapter]",
-      "Interview practice: Complete [X] mock interviews on Pramp.com focusing on [specific skill]"
-    ],
-    "fourteenDays": [
-      "Build project: [specific project idea using top missing JD skill] and deploy to GitHub",
-      "Final prep: [specific final resource addressing remaining gaps]"
-    ]
-  }
+  "threeDays": [
+    {"day": 1, "task": "specific day 1 task with platform and resource"},
+    {"day": 2, "task": "specific day 2 task with platform and resource"},
+    {"day": 3, "task": "specific day 3 task with platform and resource"}
+  ],
+  "sevenDays": [
+    {"day": 1, "task": "specific task"},
+    {"day": 2, "task": "specific task"},
+    {"day": 3, "task": "specific task"},
+    {"day": 4, "task": "specific task"},
+    {"day": 5, "task": "specific task"},
+    {"day": 6, "task": "specific task"},
+    {"day": 7, "task": "specific task"}
+  ],
+  "fourteenDays": [
+    {"day": 1, "task": "specific task"},
+    {"day": 7, "task": "mid-point milestone"},
+    {"day": 14, "task": "final deliverable"}
+  ]
+}
 }`;
 
     const response = await client.chat.completions.create({
