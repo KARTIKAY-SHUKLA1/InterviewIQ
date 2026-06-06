@@ -233,31 +233,44 @@ const ResultsPage = ({ data, onBack }) => {
     <h2 className="text-xl font-semibold mb-6">Preparation Roadmap</h2>
     <div className="grid grid-cols-3 gap-6">
       {[
-        { label: "3 Days", items: analysis.roadmap.threeDays, color: "indigo", accent: "border-indigo-500/30 bg-indigo-500/5", desc: "Critical fixes" },
-        { label: "7 Days", items: analysis.roadmap.sevenDays, color: "purple", accent: "border-purple-500/30 bg-purple-500/5", desc: "Skill building" },
-        { label: "14 Days", items: analysis.roadmap.fourteenDays, color: "pink", accent: "border-pink-500/30 bg-pink-500/5", desc: "Build & deploy" },
-      ].map(({ label, items, color, accent, desc }) => (
-        <div key={label}>
-          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${accent} mb-1`}>
-            <div className={`w-1.5 h-1.5 rounded-full bg-${color}-400`} />
-            <h3 className={`text-sm font-bold text-${color}-400`}>{label} Plan</h3>
+  { label: "3 Days", items: analysis.roadmap.threeDays, color: "indigo", accent: "border-indigo-500/30 bg-indigo-500/5", desc: "Highest priority fixes" },
+  { label: "7 Days", items: analysis.roadmap.sevenDays, color: "purple", accent: "border-purple-500/30 bg-purple-500/5", desc: "Builds on 3-day plan" },
+  { label: "14 Days", items: analysis.roadmap.fourteenDays, color: "pink", accent: "border-pink-500/30 bg-pink-500/5", desc: "Week 1 foundation + Week 2 project" },
+].map(({ label, items, color, accent, desc }) => (
+  <div key={label}>
+    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${accent} mb-1`}>
+      <div className={`w-1.5 h-1.5 rounded-full bg-${color}-400`} />
+      <h3 className={`text-sm font-bold text-${color}-400`}>{label} Plan</h3>
+    </div>
+    <p className="text-xs text-slate-500 mb-4">{desc}</p>
+    <div className="space-y-3">
+      {items.map((item, i) => {
+        const taskText = typeof item === "object" ? item.task : item;
+        const dayNum = typeof item === "object" && item.day ? item.day : i + 1;
+        const isWeek2 = label === "14 Days" && dayNum >= 8;
+        return (
+          <div key={i} className={`border rounded-xl p-3 ${
+            isWeek2 
+              ? "bg-pink-500/5 border-pink-500/20" 
+              : "bg-white/[0.03] border border-white/5"
+          }`}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`text-xs font-semibold ${isWeek2 ? "text-pink-400" : `text-${color}-400`}`}>
+                Day {dayNum}
+              </span>
+              {isWeek2 && (
+                <span className="text-xs bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full">
+                  Week 2
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">{taskText}</p>
           </div>
-          <p className="text-xs text-slate-500 mb-4">{desc}</p>
-          <div className="space-y-3">
-            {items.map((item, i) => {
-              const taskText = typeof item === "object" ? item.task : item;
-              return (
-                <div key={i} className="bg-white/[0.03] border border-white/5 rounded-xl p-3">
-                  <div className={`text-xs font-semibold text-${color}-400 mb-1`}>
-                    Task {i + 1}
-                  </div>
-                  <p className="text-xs text-slate-400 leading-relaxed">{taskText}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+        );
+      })}
+    </div>
+  </div>
+))}
     </div>
   </div>
 )}

@@ -10,22 +10,22 @@ const getClient = () => {
 const generateRoadmapPeriod = async (client, resumeText, jdText, transcriptText, period, missingSkills, weakAnswers) => {
   const periodConfig = {
     "3": {
-      focus: "Address the most critical weakness identified in the transcript RIGHT NOW",
+      focus: "Top 3 MOST CRITICAL tasks to do RIGHT NOW based on interview weaknesses and missing skills",
       count: 3,
-      instruction: "Focus on quick wins — what can be done in 3 days to directly fix the biggest gap shown in the interview",
-      example: '{"day": 1, "task": "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — build Hello World API and understand routing"}'
+      instruction: "Priority order — most important first. These are the highest impact tasks. Someone with only 3 days should do exactly these 3 things first before anything else.",
+      example: '{"day": 1, "task": "FastAPI official tutorial at fastapi.tiangolo.com/tutorial — build Hello World API"}'
     },
     "7": {
-      focus: "Bridge the skill gaps between resume and JD through daily practice",
+      focus: "Cumulative plan — days 1-3 are same priority as 3-day plan, days 4-7 build on top",
       count: 7,
-      instruction: "Each day must be different and progressively harder — day 1 is basics, day 7 is a small project",
-      example: '{"day": 4, "task": "Build a CRUD API with FastAPI and PostgreSQL — implement all 4 endpoints and test with Postman"}'
+      instruction: "Day 1, 2, 3 must address the SAME top priorities as the 3-day plan. Day 4-7 adds deeper skill building. Progressive — each day harder than previous.",
+      example: '{"day": 4, "task": "Build CRUD API with FastAPI and PostgreSQL on GitHub"}'
     },
     "14": {
-      focus: "Build a complete deployable project using the missing skills",
+      focus: "Full 2-week plan — Week 1 is foundation and skill building, Week 2 is building and deploying a real project",
       count: 7,
-      instruction: "Key milestones on days 1, 2, 4, 6, 8, 11, 14 — ends with a deployed project on GitHub",
-      example: '{"day": 14, "task": "Deploy document intelligence demo to Render.com — add live URL to resume and LinkedIn"}'
+      instruction: "Days 1-7 cover same priorities as 7-day plan. Days 8-14 focus entirely on building ONE complete deployable project using the missing skills. Use day numbers 1,2,4,6,8,11,14 to show it spans 2 weeks.",
+      example: '{"day": 8, "task": "Start building document intelligence project in Python using PyMuPDF and FastAPI"}'
     }
   };
 
