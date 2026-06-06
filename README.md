@@ -1,4 +1,4 @@
-# InterviewIQ — AI-Powered Interview Intelligence Copilot
+# InterviewIQ : AI-Powered Interview Intelligence Copilot
 
 **Live Demo:** https://interview-iq-nine-zeta.vercel.app/
 
