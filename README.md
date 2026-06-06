@@ -101,28 +101,28 @@ These require combining information from multiple sources:
 
 ## Architecture Decisions
 
-###Why Whisper instead of cloud speech-to-text APIs ?
+### Why Whisper instead of cloud speech-to-text APIs ?
 Interview recordings are personal and sensitive. Cloud APIs like AssemblyAI send your audio to third-party servers and charge per minute. Whisper is open source, runs on our own GPU, and costs nothing per call. Base model on A30 GPU handles a 10-minute interview in about 3-4 minutes.
 
-###Why BGE-large for embeddings instead of OpenAI ?
+### Why BGE-large for embeddings instead of OpenAI ?
 BGE-large-en-v1.5 ranks at the top of the MTEB retrieval benchmark for open models. It produces 1024-dimensional vectors, runs on our GPU, and has zero cost per call. OpenAI embeddings are proprietary and add external dependency.
 
-###Why Qdrant instead of Pinecone ?
+### Why Qdrant instead of Pinecone ?
 Qdrant has a free cloud tier that works without credit card. More importantly it supports payload filtering — we use this to filter chunks by sessionId so each interview analysis is completely isolated from others. Pinecone's free tier has stricter index limits.
 
-###Why chunk text instead of embedding full documents ?
+### Why chunk text instead of embedding full documents ?
 A single resume vector can't answer "what projects did I mention?" — you need chunk-level retrieval. We split into 200-word pieces with 40-word overlap so context isn't lost at boundaries. This is what makes the chat actually precise rather than vague.
 
-###Why async processing with polling instead of waiting for response ?
+### Why async processing with polling instead of waiting for response ?
 Whisper takes 3-5 minutes on a 10-minute file. Synchronous HTTP requests timeout through Cloudflare at 120 seconds. We return a jobId immediately, process in background, frontend polls every 5 seconds. Standard pattern for long-running AI tasks.
 
-###Why timestamp citations in chat ?
+### Why timestamp citations in chat ?
 Whisper returns word-level timestamps with every transcription. We store the start timestamp with each transcript chunk in Qdrant. When chat retrieves chunks, Qwen can say "at 03:28 you said..." so the user can verify exactly what moment in their interview is being referenced. This is what separates a useful answer from a generic one.
 
-###Why not use LangChain ?
+### Why not use LangChain ?
 I built the RAG pipeline from scratch — custom chunker, direct Qdrant client, manual embedding calls. I wanted to understand every component and explain it clearly in an interview. LangChain would abstract it away and I'd be guessing at what's happening under the hood.
 
-###Why Qwen3 instead of GPT-4 ?
+### Why Qwen3 instead of GPT-4 ?
 This is a JarvisLabs assessment — running open models on GPU is the whole point. Qwen3-1.7B fits in A30 VRAM and responds in 30-60 seconds. For production I'd use Qwen3-8B on an A100 for sharper analysis quality.
 
 ---
