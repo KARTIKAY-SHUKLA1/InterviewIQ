@@ -151,11 +151,18 @@ Early versions asked Qwen to extract skills from the resume and JD. It hallucina
 ### Why Qwen3-8B instead of other LLMs ?
 Several open models were viable — Llama 3.1-8B, Mistral-7B, Gemma 2-9B. I chose Qwen3-8B for two specific reasons. First, Qwen3 follows structured JSON output instructions more reliably than alternatives this matters because the analysis pipeline depends on strict JSON format for summary, performance, and roadmap. In testing, Llama and Mistral broke the JSON format more often requiring fallback handling. Second, interview data is personal and sensitive sending audio recordings and resumes to GPT-4 or Claude raises real privacy concerns. Running Qwen3-8B on our own GPU keeps all data within our infrastructure. For production I'd evaluate Qwen3-14B on an A100 for sharper analysis quality.
 
-## What I Used AI For
+## What I Used AI For - 
 
-- **AI assisted:** Initial Express route boilerplate, Tailwind class suggestions, debugging specific error messages
-- **Written by hand:** All architecture decisions, the chunking strategy with overlap, prompt engineering for all Qwen calls, async job processing pattern, RAG retrieval logic, timestamp citation implementation, deterministic skill extraction
-- **Where I overrode AI:** Claude suggested using LangChain for the RAG pipeline I chose to build it manually. Claude suggested 768-dim embeddings — I changed to 1024-dim after a Qdrant dimension mismatch error. Claude suggested a single Qwen call for the full roadmap — I split into 3 separate calls (one per time period) after the single call produced repetitive output across all three columns.
+Claude was my pair programmer throughout. It helped with Express boilerplate, Tailwind classes, and debugging error messages I hadn't seen before.
+
+The decisions that mattered I made myself or disagreed with what Claude suggested:
+
+- Claude suggested LangChain for the RAG pipeline. I rejected it and built from scratch because I wanted to understand every component and explain it in an interview without guessing.
+- Claude suggested 768-dim embeddings. I changed to 1024-dim after hitting a Qdrant dimension mismatch error turned out I was using the wrong BGE model variant.
+- Claude suggested a single Qwen call for the full roadmap. I split into 3 separate calls after the single call produced identical tasks in all three columns the model was repeating itself.
+- Claude suggested keeping the analyze endpoint synchronous. I made it async with polling after hitting Cloudflare's 120-second timeout repeatedly.
+
+The architecture async job pattern, sessionId isolation, deterministic skill extraction, timestamp citations . I designed these after hitting real problems, not from a suggestion.
 
 ## What I Would Change With 4 More Weeks
 
