@@ -146,32 +146,32 @@ Whisper returns word level timestamps with every transcription. I store the star
 I built the RAG pipeline from scratch custom chunker, direct Qdrant client, manual embedding calls. Two reasons: I wanted to understand every part of the pipeline so I can explain it clearly, and LangChain abstracts away the exact behavior I needed to control (chunk overlap, payload metadata, session filtering).
 
 ### Why deterministic skill extraction instead of asking Qwen ?
-Early versions asked Qwen to extract skills from the resume and JD. It hallucinated showing Node.js as "missing" when it was clearly in the resume. I replaced this with keyword matching against a list of 60+ tech skills. Qwen still generates the qualitative analysis (summary, performance, roadmap) but skill gap is computed in code — deterministic, no hallucination possible.
+Early versions asked Qwen to extract skills from the resume and JD. It hallucinated showing Node.js as "missing" when it was clearly in the resume. I replaced this with keyword matching against a list of 60+ tech skills. Qwen still generates the qualitative analysis (summary, performance, roadmap) but skill gap is computed in code deterministic, no hallucination possible.
 
 ### Why Qwen3-8B instead of other LLMs ?
-Several open models were viable — Llama 3.1-8B, Mistral-7B, Gemma 2-9B. I chose Qwen3-8B for two specific reasons. First, Qwen3 follows structured JSON output instructions more reliably than alternatives this matters because the analysis pipeline depends on strict JSON format for summary, performance, and roadmap. In testing, Llama and Mistral broke the JSON format more often requiring fallback handling. Second, interview data is personal and sensitive sending audio recordings and resumes to GPT-4 or Claude raises real privacy concerns. Running Qwen3-8B on our own GPU keeps all data within our infrastructure. For production I'd evaluate Qwen3-14B on an A100 for sharper analysis quality.
+Several open models were viable like - Llama 3.1-8B, Mistral-7B, Gemma 2-9B. I chose Qwen3-8B for two specific reasons. First, Qwen3 follows structured JSON output instructions more reliably than alternatives this matters because the analysis pipeline depends on strict JSON format for summary, performance, and roadmap. In testing, Llama and Mistral broke the JSON format more often requiring fallback handling. Second, interview data is personal and sensitive sending audio recordings and resumes to GPT-4 or Claude raises real privacy concerns. Running Qwen3-8B on our own GPU keeps all data within our infrastructure. For production I'd evaluate Qwen3-14B on an A100 for sharper analysis quality.
 
-## What I Used AI For - 
+## What I Used AI For
 
-Claude was my pair programmer throughout. It helped with Express boilerplate, Tailwind classes, and debugging error messages I hadn't seen before.
+AI was my pair programmer throughout helped with Express boilerplate, Tailwind classes, and debugging error messages I hadn't seen before.
 
-The decisions that mattered I made myself or disagreed with what Claude suggested:
+The decisions that mattered I made myself or actively disagreed with what was suggested:
 
-- Claude suggested LangChain for the RAG pipeline. I rejected it and built from scratch because I wanted to understand every component and explain it in an interview without guessing.
-- Claude suggested 768-dim embeddings. I changed to 1024-dim after hitting a Qdrant dimension mismatch error turned out I was using the wrong BGE model variant.
-- Claude suggested a single Qwen call for the full roadmap. I split into 3 separate calls after the single call produced identical tasks in all three columns the model was repeating itself.
-- Claude suggested keeping the analyze endpoint synchronous. I made it async with polling after hitting Cloudflare's 120-second timeout repeatedly.
+- **RAG pipeline** :  AI suggested LangChain. I rejected it and built from scratch because I wanted to understand every component and explain it clearly without guessing.
+- **Embeddings** : AI suggested 768-dim embeddings. I changed to 1024-dim after hitting a Qdrant dimension mismatch error turned out I was using the wrong BGE model variant.
+- **Roadmap generation** : AI suggested a single LLM call for the full roadmap. I split into 3 separate calls after the single call produced identical tasks in all three columns.
+- **Async processing** : AI suggested keeping the analyze endpoint synchronous. I made it async with polling after hitting Cloudflare's 120-second timeout repeatedly.
 
-The architecture async job pattern, sessionId isolation, deterministic skill extraction, timestamp citations . I designed these after hitting real problems, not from a suggestion.
+The core architecture async job pattern, sessionId isolation, deterministic skill extraction replacing AI-based extraction after catching hallucinations, timestamp citations. I designed these after hitting real problems, not from suggestions.
 
 ## What I Would Change With 4 More Weeks
 
-**Speaker diarization** — right now the transcript is one blob of text. A real interview has two speakers interviewer and candidate. Separating them would let me analyze only the candidate's answers, not the questions, making performance scoring significantly more accurate.
+**Speaker diarization** : right now the transcript is one blob of text. A real interview has two speakers interviewer and candidate. Separating them would let me analyze only the candidate's answers, not the questions, making performance scoring significantly more accurate.
 
-**Whisper Large V3 on A100** — base model on A30 works but misses technical terms occasionally. Large V3 would give near perfect transcription for terms like "FastAPI", "Qdrant", "BGE" that base sometimes gets wrong.
+**Whisper Large V3 on A100** : base model on A30 works but misses technical terms occasionally. Large V3 would give near perfect transcription for terms like "FastAPI", "Qdrant", "BGE" that base sometimes gets wrong.
 
-**Round tracking** — upload interviews from multiple rounds for the same role and see skill improvement over time. The sessionId architecture already supports this conceptually it just needs a user account system to associate sessions.
+**Round tracking** : upload interviews from multiple rounds for the same role and see skill improvement over time. The sessionId architecture already supports this conceptually it just needs a user account system to associate sessions.
 
-**Persistent storage** — analysis results live in memory and disappear on server restart. MongoDB is already in the stack from my other projects wiring it up for session persistence would make the product actually usable day to day.
+**Persistent storage** : analysis results live in memory and disappear on server restart. MongoDB is already in the stack from my other projects wiring it up for session persistence would make the product actually usable day to day.
 
-**Direct S3 upload** — bypass the JarvisLabs proxy for file uploads. Currently limited to ~8MB due to proxy constraints. S3 presigned URLs would support hours of audio with no size limit.
+**Direct S3 upload** : bypass the JarvisLabs proxy for file uploads. Currently limited to ~8MB due to proxy constraints. S3 presigned URLs would support hours of audio with no size limit.
