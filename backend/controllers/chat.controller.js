@@ -26,11 +26,10 @@ const chat = async (req, res) => {
       console.log("RAG: generating query embedding...");
       const queryEmbedding = await getSingleEmbedding(question);
       console.log("RAG: searching vector DB...");
-      retrievedChunks = await searchChunks(queryEmbedding, sessionId, 5);
+      retrievedChunks = await searchChunks(queryEmbedding, sessionId, 8);
       console.log(`RAG: retrieved ${retrievedChunks.length} chunks`);
     } catch (ragError) {
       console.error("RAG error:", ragError.message);
-      // Fall back to analysis context
       if (analysis) {
         retrievedChunks = [
           { text: JSON.stringify(analysis.skillGap || {}), source: "analysis", score: 1.0 },
