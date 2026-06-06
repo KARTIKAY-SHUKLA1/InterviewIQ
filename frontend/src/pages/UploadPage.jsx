@@ -78,7 +78,7 @@ const UploadPage = ({ onAnalysisComplete }) => {
       </div>
 
       {/* Upload Cards */}
-      <div className="grid grid-cols-3 gap-5 w-full max-w-3xl mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-3xl mb-8">
         <FileCard label="Resume" icon={FileText} accept=".pdf" file={resume} onChange={setResume} color="#818cf8" />
         <FileCard label="Job Description" icon={Upload} accept=".pdf" file={jobDescription} onChange={setJobDescription} color="#a78bfa" />
         <FileCard label="Interview Recording" icon={Mic} accept="audio/*,video/*" file={audio} onChange={setAudio} color="#c084fc" />

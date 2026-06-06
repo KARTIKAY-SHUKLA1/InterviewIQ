@@ -109,7 +109,7 @@ const ResultsPage = ({ data, onBack }) => {
           <div>
             <h2 className="text-xl font-semibold mb-4">Interview Summary</h2>
             <p className="text-slate-400 leading-relaxed mb-6">{analysis.summary.overallSummary}</p>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-sm font-semibold text-slate-300 mb-3">Questions Asked</h3>
                 <ul className="space-y-2">
@@ -153,7 +153,7 @@ const ResultsPage = ({ data, onBack }) => {
         Calculated as: skills you have ÷ skills JD requires × 100
       </p>
     </div>
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <h3 className="text-sm font-semibold text-green-400 mb-1">✓ Skills You Have</h3>
         <p className="text-xs text-slate-500 mb-3">From your resume</p>
@@ -195,7 +195,7 @@ const ResultsPage = ({ data, onBack }) => {
         {activeTab === "performance" && (
           <div>
             <h2 className="text-xl font-semibold mb-6">Performance Analysis</h2>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="flex items-center gap-2 text-green-400 font-semibold mb-4">
                   <CheckCircle size={16} /> Strong Answers
@@ -231,7 +231,7 @@ const ResultsPage = ({ data, onBack }) => {
         {activeTab === "roadmap" && (
   <div>
     <h2 className="text-xl font-semibold mb-6">Preparation Roadmap</h2>
-    <div className="grid grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {[
   { label: "3 Days", items: analysis.roadmap.threeDays, color: "indigo", accent: "border-indigo-500/30 bg-indigo-500/5", desc: "Highest priority fixes" },
   { label: "7 Days", items: analysis.roadmap.sevenDays, color: "purple", accent: "border-purple-500/30 bg-purple-500/5", desc: "Builds on 3-day plan" },
