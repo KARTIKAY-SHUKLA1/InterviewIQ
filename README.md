@@ -148,8 +148,9 @@ I built the RAG pipeline from scratch custom chunker, direct Qdrant client, manu
 ### Why deterministic skill extraction instead of asking Qwen ?
 Early versions asked Qwen to extract skills from the resume and JD. It hallucinated showing Node.js as "missing" when it was clearly in the resume. I replaced this with keyword matching against a list of 60+ tech skills. Qwen still generates the qualitative analysis (summary, performance, roadmap) but skill gap is computed in code — deterministic, no hallucination possible.
 
-### Why Qwen3-8B instead of GPT-4 ?
-This is a JarvisLabs assessment running open models on GPU is the point. Qwen3-8B fits in A30 VRAM and gives significantly better analysis than the 1.7B variant. For production, Qwen3-14B on an A100 would give sharper results.
+### Why Qwen3-8B instead of other LLMs ?
+
+Several open models were viable — Llama 3.1-8B, Mistral-7B, Gemma 2-9B. I chose Qwen3-8B for two specific reasons. First, Qwen3 follows structured JSON output instructions more reliably than alternatives this matters because the analysis pipeline depends on strict JSON format for summary, performance, and roadmap. In testing, Llama and Mistral broke the JSON format more often requiring fallback handling. Second, interview data is personal and sensitive sending audio recordings and resumes to GPT-4 or Claude raises real privacy concerns. Running Qwen3-8B on our own GPU keeps all data within our infrastructure. For production I'd evaluate Qwen3-14B on an A100 for sharper analysis quality.
 
 ## What I Used AI For
 
